@@ -1,0 +1,6 @@
+{
+  "name": "Arasz-Öntöde Squashliga",
+  "description": "Magyar squash liga weboldala: bajnokságok, tabellák, mérkőzések, eredménybeküldés és admin felület egy helyen.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
