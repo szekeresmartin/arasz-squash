@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "import:excel": "node scripts/import-excel.ts"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",

@@ -1,0 +1,1208 @@
+[
+  {
+    "id": "match-league-a-1-2-marton-zolt-n-t-th-zolt-n",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-2-t-th-zolt-n",
+    "sourceCell": "C4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-1-3-marton-zolt-n-polg-r-istv-n",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-3-polg-r-istv-n",
+    "sourceCell": "D4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-1-4-marton-zolt-n-weisz-gy-rgy",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-4-weisz-gy-rgy",
+    "sourceCell": "E4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-1-5-marton-zolt-n-nagy-ferenc",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-5-nagy-ferenc",
+    "sourceCell": "F4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-1-6-marton-zolt-n-dombay-mikl-s",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-6-dombay-mikl-s",
+    "sourceCell": "G4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-1-7-marton-zolt-n-p-k-r-bert",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-7-p-k-r-bert",
+    "sourceCell": "H4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-1-8-marton-zolt-n-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-1-marton-zolt-n",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-2-3-t-th-zolt-n-polg-r-istv-n",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-2-t-th-zolt-n",
+    "player2Id": "player-league-a-3-polg-r-istv-n",
+    "sourceCell": "D7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-2-4-t-th-zolt-n-weisz-gy-rgy",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-2-t-th-zolt-n",
+    "player2Id": "player-league-a-4-weisz-gy-rgy",
+    "sourceCell": "E7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-2-5-t-th-zolt-n-nagy-ferenc",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-2-t-th-zolt-n",
+    "player2Id": "player-league-a-5-nagy-ferenc",
+    "sourceCell": "F7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-2-6-t-th-zolt-n-dombay-mikl-s",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-2-t-th-zolt-n",
+    "player2Id": "player-league-a-6-dombay-mikl-s",
+    "sourceCell": "G7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-2-7-t-th-zolt-n-p-k-r-bert",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-2-t-th-zolt-n",
+    "player2Id": "player-league-a-7-p-k-r-bert",
+    "sourceCell": "H7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-2-8-t-th-zolt-n-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-2-t-th-zolt-n",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-3-4-polg-r-istv-n-weisz-gy-rgy",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-3-polg-r-istv-n",
+    "player2Id": "player-league-a-4-weisz-gy-rgy",
+    "sourceCell": "E10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-3-5-polg-r-istv-n-nagy-ferenc",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-3-polg-r-istv-n",
+    "player2Id": "player-league-a-5-nagy-ferenc",
+    "sourceCell": "F10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-3-6-polg-r-istv-n-dombay-mikl-s",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-3-polg-r-istv-n",
+    "player2Id": "player-league-a-6-dombay-mikl-s",
+    "sourceCell": "G10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-3-7-polg-r-istv-n-p-k-r-bert",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-3-polg-r-istv-n",
+    "player2Id": "player-league-a-7-p-k-r-bert",
+    "sourceCell": "H10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-3-8-polg-r-istv-n-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-3-polg-r-istv-n",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-4-5-weisz-gy-rgy-nagy-ferenc",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-4-weisz-gy-rgy",
+    "player2Id": "player-league-a-5-nagy-ferenc",
+    "sourceCell": "F13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-4-6-weisz-gy-rgy-dombay-mikl-s",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-4-weisz-gy-rgy",
+    "player2Id": "player-league-a-6-dombay-mikl-s",
+    "sourceCell": "G13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-4-7-weisz-gy-rgy-p-k-r-bert",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-4-weisz-gy-rgy",
+    "player2Id": "player-league-a-7-p-k-r-bert",
+    "sourceCell": "H13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-4-8-weisz-gy-rgy-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-4-weisz-gy-rgy",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-5-6-nagy-ferenc-dombay-mikl-s",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-5-nagy-ferenc",
+    "player2Id": "player-league-a-6-dombay-mikl-s",
+    "sourceCell": "G16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-5-7-nagy-ferenc-p-k-r-bert",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-5-nagy-ferenc",
+    "player2Id": "player-league-a-7-p-k-r-bert",
+    "sourceCell": "H16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-5-8-nagy-ferenc-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-5-nagy-ferenc",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-6-7-dombay-mikl-s-p-k-r-bert",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-6-dombay-mikl-s",
+    "player2Id": "player-league-a-7-p-k-r-bert",
+    "sourceCell": "H19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-6-8-dombay-mikl-s-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-6-dombay-mikl-s",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-a-7-8-p-k-r-bert-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "player1Id": "player-league-a-7-p-k-r-bert",
+    "player2Id": "player-league-a-8-kov-cs-g-bor",
+    "sourceCell": "I22",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-2-s-kovics-p-ter-t-th-istv-n",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-2-t-th-istv-n",
+    "sourceCell": "C4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-3-s-kovics-p-ter-kulcs-r-s-ndor",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-3-kulcs-r-s-ndor",
+    "sourceCell": "D4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-4-s-kovics-p-ter-bikali-bal-zs",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-4-bikali-bal-zs",
+    "sourceCell": "E4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-5-s-kovics-p-ter-mark-zolt-n",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-5-mark-zolt-n",
+    "sourceCell": "F4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-6-s-kovics-p-ter-czupor-andr-s",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-6-czupor-andr-s",
+    "sourceCell": "G4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-7-s-kovics-p-ter-varga-lorena",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-7-varga-lorena",
+    "sourceCell": "H4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-1-8-s-kovics-p-ter-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-1-s-kovics-p-ter",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-2-3-t-th-istv-n-kulcs-r-s-ndor",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-2-t-th-istv-n",
+    "player2Id": "player-league-b-3-kulcs-r-s-ndor",
+    "sourceCell": "D7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-2-4-t-th-istv-n-bikali-bal-zs",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-2-t-th-istv-n",
+    "player2Id": "player-league-b-4-bikali-bal-zs",
+    "sourceCell": "E7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-2-5-t-th-istv-n-mark-zolt-n",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-2-t-th-istv-n",
+    "player2Id": "player-league-b-5-mark-zolt-n",
+    "sourceCell": "F7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-2-6-t-th-istv-n-czupor-andr-s",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-2-t-th-istv-n",
+    "player2Id": "player-league-b-6-czupor-andr-s",
+    "sourceCell": "G7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-2-7-t-th-istv-n-varga-lorena",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-2-t-th-istv-n",
+    "player2Id": "player-league-b-7-varga-lorena",
+    "sourceCell": "H7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-2-8-t-th-istv-n-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-2-t-th-istv-n",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-3-4-kulcs-r-s-ndor-bikali-bal-zs",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-3-kulcs-r-s-ndor",
+    "player2Id": "player-league-b-4-bikali-bal-zs",
+    "sourceCell": "E10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-3-5-kulcs-r-s-ndor-mark-zolt-n",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-3-kulcs-r-s-ndor",
+    "player2Id": "player-league-b-5-mark-zolt-n",
+    "sourceCell": "F10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-3-6-kulcs-r-s-ndor-czupor-andr-s",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-3-kulcs-r-s-ndor",
+    "player2Id": "player-league-b-6-czupor-andr-s",
+    "sourceCell": "G10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-3-7-kulcs-r-s-ndor-varga-lorena",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-3-kulcs-r-s-ndor",
+    "player2Id": "player-league-b-7-varga-lorena",
+    "sourceCell": "H10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-3-8-kulcs-r-s-ndor-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-3-kulcs-r-s-ndor",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-4-5-bikali-bal-zs-mark-zolt-n",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-4-bikali-bal-zs",
+    "player2Id": "player-league-b-5-mark-zolt-n",
+    "sourceCell": "F13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-4-6-bikali-bal-zs-czupor-andr-s",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-4-bikali-bal-zs",
+    "player2Id": "player-league-b-6-czupor-andr-s",
+    "sourceCell": "G13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-4-7-bikali-bal-zs-varga-lorena",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-4-bikali-bal-zs",
+    "player2Id": "player-league-b-7-varga-lorena",
+    "sourceCell": "H13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-4-8-bikali-bal-zs-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-4-bikali-bal-zs",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-5-6-mark-zolt-n-czupor-andr-s",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-5-mark-zolt-n",
+    "player2Id": "player-league-b-6-czupor-andr-s",
+    "sourceCell": "G16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-5-7-mark-zolt-n-varga-lorena",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-5-mark-zolt-n",
+    "player2Id": "player-league-b-7-varga-lorena",
+    "sourceCell": "H16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-5-8-mark-zolt-n-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-5-mark-zolt-n",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-6-7-czupor-andr-s-varga-lorena",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-6-czupor-andr-s",
+    "player2Id": "player-league-b-7-varga-lorena",
+    "sourceCell": "H19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-6-8-czupor-andr-s-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-6-czupor-andr-s",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-b-7-8-varga-lorena-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "player1Id": "player-league-b-7-varga-lorena",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceCell": "I22",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-2-sz-kely-rp-d-t-th-b-lint",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-2-t-th-b-lint",
+    "sourceCell": "C4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-3-sz-kely-rp-d-b-rzs-nyi-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "sourceCell": "D4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-4-sz-kely-rp-d-kmet-alex",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-4-kmet-alex",
+    "sourceCell": "E4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-5-sz-kely-rp-d-bartus-p-ter",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-5-bartus-p-ter",
+    "sourceCell": "F4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-6-sz-kely-rp-d-fekete-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-6-fekete-tam-s",
+    "sourceCell": "G4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-7-sz-kely-rp-d-varga-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-7-varga-tam-s",
+    "sourceCell": "H4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-1-8-sz-kely-rp-d-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-1-sz-kely-rp-d",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-2-3-t-th-b-lint-b-rzs-nyi-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-2-t-th-b-lint",
+    "player2Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "sourceCell": "D7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-2-4-t-th-b-lint-kmet-alex",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-2-t-th-b-lint",
+    "player2Id": "player-league-c-4-kmet-alex",
+    "sourceCell": "E7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-2-5-t-th-b-lint-bartus-p-ter",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-2-t-th-b-lint",
+    "player2Id": "player-league-c-5-bartus-p-ter",
+    "sourceCell": "F7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-2-6-t-th-b-lint-fekete-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-2-t-th-b-lint",
+    "player2Id": "player-league-c-6-fekete-tam-s",
+    "sourceCell": "G7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-2-7-t-th-b-lint-varga-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-2-t-th-b-lint",
+    "player2Id": "player-league-c-7-varga-tam-s",
+    "sourceCell": "H7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-2-8-t-th-b-lint-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-2-t-th-b-lint",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-3-4-b-rzs-nyi-bal-zs-kmet-alex",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "player2Id": "player-league-c-4-kmet-alex",
+    "sourceCell": "E10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-3-5-b-rzs-nyi-bal-zs-bartus-p-ter",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "player2Id": "player-league-c-5-bartus-p-ter",
+    "sourceCell": "F10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-3-6-b-rzs-nyi-bal-zs-fekete-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "player2Id": "player-league-c-6-fekete-tam-s",
+    "sourceCell": "G10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-3-7-b-rzs-nyi-bal-zs-varga-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "player2Id": "player-league-c-7-varga-tam-s",
+    "sourceCell": "H10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-3-8-b-rzs-nyi-bal-zs-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-4-5-kmet-alex-bartus-p-ter",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-4-kmet-alex",
+    "player2Id": "player-league-c-5-bartus-p-ter",
+    "sourceCell": "F13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-4-6-kmet-alex-fekete-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-4-kmet-alex",
+    "player2Id": "player-league-c-6-fekete-tam-s",
+    "sourceCell": "G13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-4-7-kmet-alex-varga-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-4-kmet-alex",
+    "player2Id": "player-league-c-7-varga-tam-s",
+    "sourceCell": "H13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-4-8-kmet-alex-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-4-kmet-alex",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-5-6-bartus-p-ter-fekete-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-5-bartus-p-ter",
+    "player2Id": "player-league-c-6-fekete-tam-s",
+    "sourceCell": "G16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-5-7-bartus-p-ter-varga-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-5-bartus-p-ter",
+    "player2Id": "player-league-c-7-varga-tam-s",
+    "sourceCell": "H16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-5-8-bartus-p-ter-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-5-bartus-p-ter",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-6-7-fekete-tam-s-varga-tam-s",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-6-fekete-tam-s",
+    "player2Id": "player-league-c-7-varga-tam-s",
+    "sourceCell": "H19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-6-8-fekete-tam-s-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-6-fekete-tam-s",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-c-7-8-varga-tam-s-hatos-bal-zs",
+    "leagueId": "league-c",
+    "player1Id": "player-league-c-7-varga-tam-s",
+    "player2Id": "player-league-c-8-hatos-bal-zs",
+    "sourceCell": "I22",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-2-bankits-csaba-makszin-mikl-s",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-2-makszin-mikl-s",
+    "sourceCell": "C4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-3-bankits-csaba-b-r-zolt-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-3-b-r-zolt-n",
+    "sourceCell": "D4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-4-bankits-csaba-zsoldos-tam-s",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-4-zsoldos-tam-s",
+    "sourceCell": "E4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-5-bankits-csaba-luk-cs-d-niel",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-5-luk-cs-d-niel",
+    "sourceCell": "F4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-6-bankits-csaba-moln-r-mil-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-6-moln-r-mil-n",
+    "sourceCell": "G4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-7-bankits-csaba-bogn-r-barna",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceCell": "H4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-1-8-bankits-csaba-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I4",
+    "reverseSourceCell": "B25",
+    "status": "approved",
+    "resultId": "result-league-d-1-8-bankits-csaba-g-sp-r-j-lia"
+  },
+  {
+    "id": "match-league-d-2-3-makszin-mikl-s-b-r-zolt-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-2-makszin-mikl-s",
+    "player2Id": "player-league-d-3-b-r-zolt-n",
+    "sourceCell": "D7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-2-4-makszin-mikl-s-zsoldos-tam-s",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-2-makszin-mikl-s",
+    "player2Id": "player-league-d-4-zsoldos-tam-s",
+    "sourceCell": "E7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-2-5-makszin-mikl-s-luk-cs-d-niel",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-2-makszin-mikl-s",
+    "player2Id": "player-league-d-5-luk-cs-d-niel",
+    "sourceCell": "F7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-2-6-makszin-mikl-s-moln-r-mil-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-2-makszin-mikl-s",
+    "player2Id": "player-league-d-6-moln-r-mil-n",
+    "sourceCell": "G7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-2-7-makszin-mikl-s-bogn-r-barna",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-2-makszin-mikl-s",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceCell": "H7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-2-8-makszin-mikl-s-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-2-makszin-mikl-s",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-3-4-b-r-zolt-n-zsoldos-tam-s",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-3-b-r-zolt-n",
+    "player2Id": "player-league-d-4-zsoldos-tam-s",
+    "sourceCell": "E10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-3-5-b-r-zolt-n-luk-cs-d-niel",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-3-b-r-zolt-n",
+    "player2Id": "player-league-d-5-luk-cs-d-niel",
+    "sourceCell": "F10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-3-6-b-r-zolt-n-moln-r-mil-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-3-b-r-zolt-n",
+    "player2Id": "player-league-d-6-moln-r-mil-n",
+    "sourceCell": "G10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-3-7-b-r-zolt-n-bogn-r-barna",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-3-b-r-zolt-n",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceCell": "H10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-3-8-b-r-zolt-n-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-3-b-r-zolt-n",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-4-5-zsoldos-tam-s-luk-cs-d-niel",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-4-zsoldos-tam-s",
+    "player2Id": "player-league-d-5-luk-cs-d-niel",
+    "sourceCell": "F13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-4-6-zsoldos-tam-s-moln-r-mil-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-4-zsoldos-tam-s",
+    "player2Id": "player-league-d-6-moln-r-mil-n",
+    "sourceCell": "G13",
+    "reverseSourceCell": "E19",
+    "status": "approved",
+    "resultId": "result-league-d-4-6-zsoldos-tam-s-moln-r-mil-n"
+  },
+  {
+    "id": "match-league-d-4-7-zsoldos-tam-s-bogn-r-barna",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-4-zsoldos-tam-s",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceCell": "H13",
+    "reverseSourceCell": "E22",
+    "status": "approved",
+    "resultId": "result-league-d-4-7-zsoldos-tam-s-bogn-r-barna"
+  },
+  {
+    "id": "match-league-d-4-8-zsoldos-tam-s-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-4-zsoldos-tam-s",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-5-6-luk-cs-d-niel-moln-r-mil-n",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-5-luk-cs-d-niel",
+    "player2Id": "player-league-d-6-moln-r-mil-n",
+    "sourceCell": "G16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-5-7-luk-cs-d-niel-bogn-r-barna",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-5-luk-cs-d-niel",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceCell": "H16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-5-8-luk-cs-d-niel-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-5-luk-cs-d-niel",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-6-7-moln-r-mil-n-bogn-r-barna",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-6-moln-r-mil-n",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceCell": "H19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-6-8-moln-r-mil-n-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-6-moln-r-mil-n",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-d-7-8-bogn-r-barna-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "player1Id": "player-league-d-7-bogn-r-barna",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceCell": "I22",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-1-2-bakos-m-ty-s-szerdahelyi-d-niel",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-2-szerdahelyi-d-niel",
+    "sourceCell": "C4",
+    "reverseSourceCell": "B7",
+    "status": "approved",
+    "resultId": "result-league-e-1-2-bakos-m-ty-s-szerdahelyi-d-niel"
+  },
+  {
+    "id": "match-league-e-1-3-bakos-m-ty-s-vincze-kriszti-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-3-vincze-kriszti-n",
+    "sourceCell": "D4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-1-4-bakos-m-ty-s-hajba-tibor",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-4-hajba-tibor",
+    "sourceCell": "E4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-1-5-bakos-m-ty-s-hajba-zo",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-5-hajba-zo",
+    "sourceCell": "F4",
+    "reverseSourceCell": "B16",
+    "status": "approved",
+    "resultId": "result-league-e-1-5-bakos-m-ty-s-hajba-zo"
+  },
+  {
+    "id": "match-league-e-1-6-bakos-m-ty-s-kov-cs-zsolt",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-6-kov-cs-zsolt",
+    "sourceCell": "G4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-1-7-bakos-m-ty-s-szekeres-martin",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceCell": "H4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-1-8-bakos-m-ty-s-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-1-9-bakos-m-ty-s-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J4",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-2-3-szerdahelyi-d-niel-vincze-kriszti-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-3-vincze-kriszti-n",
+    "sourceCell": "D7",
+    "reverseSourceCell": "C10",
+    "status": "approved",
+    "resultId": "result-league-e-2-3-szerdahelyi-d-niel-vincze-kriszti-n"
+  },
+  {
+    "id": "match-league-e-2-4-szerdahelyi-d-niel-hajba-tibor",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-4-hajba-tibor",
+    "sourceCell": "E7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-2-5-szerdahelyi-d-niel-hajba-zo",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-5-hajba-zo",
+    "sourceCell": "F7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-2-6-szerdahelyi-d-niel-kov-cs-zsolt",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-6-kov-cs-zsolt",
+    "sourceCell": "G7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-2-7-szerdahelyi-d-niel-szekeres-martin",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceCell": "H7",
+    "reverseSourceCell": "C22",
+    "status": "approved",
+    "resultId": "result-league-e-2-7-szerdahelyi-d-niel-szekeres-martin"
+  },
+  {
+    "id": "match-league-e-2-8-szerdahelyi-d-niel-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-2-9-szerdahelyi-d-niel-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J7",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-3-4-vincze-kriszti-n-hajba-tibor",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-4-hajba-tibor",
+    "sourceCell": "E10",
+    "reverseSourceCell": "D13",
+    "status": "approved",
+    "resultId": "result-league-e-3-4-vincze-kriszti-n-hajba-tibor"
+  },
+  {
+    "id": "match-league-e-3-5-vincze-kriszti-n-hajba-zo",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-5-hajba-zo",
+    "sourceCell": "F10",
+    "reverseSourceCell": "D16",
+    "status": "approved",
+    "resultId": "result-league-e-3-5-vincze-kriszti-n-hajba-zo"
+  },
+  {
+    "id": "match-league-e-3-6-vincze-kriszti-n-kov-cs-zsolt",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-6-kov-cs-zsolt",
+    "sourceCell": "G10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-3-7-vincze-kriszti-n-szekeres-martin",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceCell": "H10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-3-8-vincze-kriszti-n-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-3-9-vincze-kriszti-n-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J10",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-4-5-hajba-tibor-hajba-zo",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-4-hajba-tibor",
+    "player2Id": "player-league-e-5-hajba-zo",
+    "sourceCell": "F13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-4-6-hajba-tibor-kov-cs-zsolt",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-4-hajba-tibor",
+    "player2Id": "player-league-e-6-kov-cs-zsolt",
+    "sourceCell": "G13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-4-7-hajba-tibor-szekeres-martin",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-4-hajba-tibor",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceCell": "H13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-4-8-hajba-tibor-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-4-hajba-tibor",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I13",
+    "reverseSourceCell": "E25",
+    "status": "approved",
+    "resultId": "result-league-e-4-8-hajba-tibor-n-meh-bal-zs"
+  },
+  {
+    "id": "match-league-e-4-9-hajba-tibor-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-4-hajba-tibor",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J13",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-5-6-hajba-zo-kov-cs-zsolt",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-5-hajba-zo",
+    "player2Id": "player-league-e-6-kov-cs-zsolt",
+    "sourceCell": "G16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-5-7-hajba-zo-szekeres-martin",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-5-hajba-zo",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceCell": "H16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-5-8-hajba-zo-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-5-hajba-zo",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-5-9-hajba-zo-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-5-hajba-zo",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J16",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-6-7-kov-cs-zsolt-szekeres-martin",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-6-kov-cs-zsolt",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceCell": "H19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-6-8-kov-cs-zsolt-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-6-kov-cs-zsolt",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-6-9-kov-cs-zsolt-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-6-kov-cs-zsolt",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J19",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-7-8-szekeres-martin-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-7-szekeres-martin",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceCell": "I22",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-7-9-szekeres-martin-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-7-szekeres-martin",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J22",
+    "status": "scheduled"
+  },
+  {
+    "id": "match-league-e-8-9-n-meh-bal-zs-nagy-zolt-n",
+    "leagueId": "league-e",
+    "player1Id": "player-league-e-8-n-meh-bal-zs",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceCell": "J25",
+    "reverseSourceCell": "I28",
+    "status": "approved",
+    "resultId": "result-league-e-8-9-n-meh-bal-zs-nagy-zolt-n"
+  }
+]

@@ -1,0 +1,231 @@
+{
+  "sourceFile": "data/raw/0612_15_arasz_ontode_liga.xlsx",
+  "importedAt": "2026-06-19T19:38:00.126Z",
+  "leagues": [
+    {
+      "sheetName": "A liga",
+      "realPlayers": 8,
+      "placeholderCells": 4,
+      "matches": 28,
+      "rawFilledResultCells": 0,
+      "approvedResults": 0,
+      "conflictCells": [],
+      "unknownTokens": [],
+      "skippedCells": [
+        {
+          "cell": "J1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "K1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A28",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A31",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        }
+      ]
+    },
+    {
+      "sheetName": "B liga",
+      "realPlayers": 8,
+      "placeholderCells": 4,
+      "matches": 28,
+      "rawFilledResultCells": 0,
+      "approvedResults": 0,
+      "conflictCells": [],
+      "unknownTokens": [],
+      "skippedCells": [
+        {
+          "cell": "J1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "K1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A28",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A31",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        }
+      ]
+    },
+    {
+      "sheetName": "C liga",
+      "realPlayers": 8,
+      "placeholderCells": 6,
+      "matches": 28,
+      "rawFilledResultCells": 0,
+      "approvedResults": 0,
+      "conflictCells": [],
+      "unknownTokens": [],
+      "skippedCells": [
+        {
+          "cell": "J1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "K1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "L1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A28",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A31",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A34",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        }
+      ]
+    },
+    {
+      "sheetName": "D liga",
+      "realPlayers": 8,
+      "placeholderCells": 6,
+      "matches": 28,
+      "rawFilledResultCells": 6,
+      "approvedResults": 3,
+      "conflictCells": [],
+      "unknownTokens": [],
+      "skippedCells": [
+        {
+          "cell": "J1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "K1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "L1",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A28",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A31",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "A34",
+          "value": "0",
+          "reason": "placeholder-player-slot"
+        },
+        {
+          "cell": "B25",
+          "value": "0/5",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "E19",
+          "value": "0/5",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "E22",
+          "value": "0/5",
+          "reason": "deduplicated-mirror-cell"
+        }
+      ]
+    },
+    {
+      "sheetName": "E liga",
+      "realPlayers": 9,
+      "placeholderCells": 0,
+      "matches": 36,
+      "rawFilledResultCells": 16,
+      "approvedResults": 8,
+      "conflictCells": [],
+      "unknownTokens": [],
+      "skippedCells": [
+        {
+          "cell": "B7",
+          "value": "3/2",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "B16",
+          "value": "1/4",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "C10",
+          "value": "2/3",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "C22",
+          "value": "2/3",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "D13",
+          "value": "1/4",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "D16",
+          "value": "2/3",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "E25",
+          "value": "4/1",
+          "reason": "deduplicated-mirror-cell"
+        },
+        {
+          "cell": "I28",
+          "value": "0/5",
+          "reason": "deduplicated-mirror-cell"
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "leagues": 5,
+    "players": 41,
+    "matches": 148,
+    "approvedResults": 11,
+    "placeholderCells": 20,
+    "rawFilledResultCells": 22,
+    "conflictCells": 0,
+    "unknownTokens": 0
+  }
+}

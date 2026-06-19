@@ -1,0 +1,200 @@
+[
+  {
+    "id": "result-league-d-1-8-bankits-csaba-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "matchId": "match-league-d-1-8-bankits-csaba-g-sp-r-j-lia",
+    "player1Id": "player-league-d-1-bankits-csaba",
+    "player2Id": "player-league-d-8-g-sp-r-j-lia",
+    "sourceSheet": "D liga",
+    "sourceCells": [
+      "I4",
+      "B25"
+    ],
+    "rawHomeToken": "5/0",
+    "rawAwayToken": "0/5",
+    "normalizedSetsWon": 5,
+    "normalizedSetsLost": 0,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-d-4-6-zsoldos-tam-s-moln-r-mil-n",
+    "leagueId": "league-d",
+    "matchId": "match-league-d-4-6-zsoldos-tam-s-moln-r-mil-n",
+    "player1Id": "player-league-d-4-zsoldos-tam-s",
+    "player2Id": "player-league-d-6-moln-r-mil-n",
+    "sourceSheet": "D liga",
+    "sourceCells": [
+      "G13",
+      "E19"
+    ],
+    "rawHomeToken": "5/0",
+    "rawAwayToken": "0/5",
+    "normalizedSetsWon": 5,
+    "normalizedSetsLost": 0,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-d-4-7-zsoldos-tam-s-bogn-r-barna",
+    "leagueId": "league-d",
+    "matchId": "match-league-d-4-7-zsoldos-tam-s-bogn-r-barna",
+    "player1Id": "player-league-d-4-zsoldos-tam-s",
+    "player2Id": "player-league-d-7-bogn-r-barna",
+    "sourceSheet": "D liga",
+    "sourceCells": [
+      "H13",
+      "E22"
+    ],
+    "rawHomeToken": "5/0",
+    "rawAwayToken": "0/5",
+    "normalizedSetsWon": 5,
+    "normalizedSetsLost": 0,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-1-2-bakos-m-ty-s-szerdahelyi-d-niel",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-1-2-bakos-m-ty-s-szerdahelyi-d-niel",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-2-szerdahelyi-d-niel",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "C4",
+      "B7"
+    ],
+    "rawHomeToken": "2/3",
+    "rawAwayToken": "3/2",
+    "normalizedSetsWon": 2,
+    "normalizedSetsLost": 3,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-1-5-bakos-m-ty-s-hajba-zo",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-1-5-bakos-m-ty-s-hajba-zo",
+    "player1Id": "player-league-e-1-bakos-m-ty-s",
+    "player2Id": "player-league-e-5-hajba-zo",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "F4",
+      "B16"
+    ],
+    "rawHomeToken": "4/1",
+    "rawAwayToken": "1/4",
+    "normalizedSetsWon": 4,
+    "normalizedSetsLost": 1,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-2-3-szerdahelyi-d-niel-vincze-kriszti-n",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-2-3-szerdahelyi-d-niel-vincze-kriszti-n",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-3-vincze-kriszti-n",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "D7",
+      "C10"
+    ],
+    "rawHomeToken": "3/2",
+    "rawAwayToken": "2/3",
+    "normalizedSetsWon": 3,
+    "normalizedSetsLost": 2,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-2-7-szerdahelyi-d-niel-szekeres-martin",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-2-7-szerdahelyi-d-niel-szekeres-martin",
+    "player1Id": "player-league-e-2-szerdahelyi-d-niel",
+    "player2Id": "player-league-e-7-szekeres-martin",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "H7",
+      "C22"
+    ],
+    "rawHomeToken": "3/2",
+    "rawAwayToken": "2/3",
+    "normalizedSetsWon": 3,
+    "normalizedSetsLost": 2,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-3-4-vincze-kriszti-n-hajba-tibor",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-3-4-vincze-kriszti-n-hajba-tibor",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-4-hajba-tibor",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "E10",
+      "D13"
+    ],
+    "rawHomeToken": "4/1",
+    "rawAwayToken": "1/4",
+    "normalizedSetsWon": 4,
+    "normalizedSetsLost": 1,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-3-5-vincze-kriszti-n-hajba-zo",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-3-5-vincze-kriszti-n-hajba-zo",
+    "player1Id": "player-league-e-3-vincze-kriszti-n",
+    "player2Id": "player-league-e-5-hajba-zo",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "F10",
+      "D16"
+    ],
+    "rawHomeToken": "3/2",
+    "rawAwayToken": "2/3",
+    "normalizedSetsWon": 3,
+    "normalizedSetsLost": 2,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-4-8-hajba-tibor-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-4-8-hajba-tibor-n-meh-bal-zs",
+    "player1Id": "player-league-e-4-hajba-tibor",
+    "player2Id": "player-league-e-8-n-meh-bal-zs",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "I13",
+      "E25"
+    ],
+    "rawHomeToken": "1/4",
+    "rawAwayToken": "4/1",
+    "normalizedSetsWon": 1,
+    "normalizedSetsLost": 4,
+    "kind": "score",
+    "status": "approved"
+  },
+  {
+    "id": "result-league-e-8-9-n-meh-bal-zs-nagy-zolt-n",
+    "leagueId": "league-e",
+    "matchId": "match-league-e-8-9-n-meh-bal-zs-nagy-zolt-n",
+    "player1Id": "player-league-e-8-n-meh-bal-zs",
+    "player2Id": "player-league-e-9-nagy-zolt-n",
+    "sourceSheet": "E liga",
+    "sourceCells": [
+      "J25",
+      "I28"
+    ],
+    "rawHomeToken": "5/0",
+    "rawAwayToken": "0/5",
+    "normalizedSetsWon": 5,
+    "normalizedSetsLost": 0,
+    "kind": "score",
+    "status": "approved"
+  }
+]

@@ -1,0 +1,412 @@
+[
+  {
+    "id": "player-league-a-1-marton-zolt-n",
+    "leagueId": "league-a",
+    "name": "Marton Zoltán",
+    "sourceSheetName": "A liga",
+    "headerCell": "B1",
+    "rowCell": "A4",
+    "order": 1,
+    "active": true
+  },
+  {
+    "id": "player-league-a-2-t-th-zolt-n",
+    "leagueId": "league-a",
+    "name": "Tóth Zoltán",
+    "sourceSheetName": "A liga",
+    "headerCell": "C1",
+    "rowCell": "A7",
+    "order": 2,
+    "active": true
+  },
+  {
+    "id": "player-league-a-3-polg-r-istv-n",
+    "leagueId": "league-a",
+    "name": "Polgár István",
+    "sourceSheetName": "A liga",
+    "headerCell": "D1",
+    "rowCell": "A10",
+    "order": 3,
+    "active": true
+  },
+  {
+    "id": "player-league-a-4-weisz-gy-rgy",
+    "leagueId": "league-a",
+    "name": "Weisz György",
+    "sourceSheetName": "A liga",
+    "headerCell": "E1",
+    "rowCell": "A13",
+    "order": 4,
+    "active": true
+  },
+  {
+    "id": "player-league-a-5-nagy-ferenc",
+    "leagueId": "league-a",
+    "name": "Nagy Ferenc",
+    "sourceSheetName": "A liga",
+    "headerCell": "F1",
+    "rowCell": "A16",
+    "order": 5,
+    "active": true
+  },
+  {
+    "id": "player-league-a-6-dombay-mikl-s",
+    "leagueId": "league-a",
+    "name": "Dombay Miklós",
+    "sourceSheetName": "A liga",
+    "headerCell": "G1",
+    "rowCell": "A19",
+    "order": 6,
+    "active": true
+  },
+  {
+    "id": "player-league-a-7-p-k-r-bert",
+    "leagueId": "league-a",
+    "name": "Pék Róbert",
+    "sourceSheetName": "A liga",
+    "headerCell": "H1",
+    "rowCell": "A22",
+    "order": 7,
+    "active": true
+  },
+  {
+    "id": "player-league-a-8-kov-cs-g-bor",
+    "leagueId": "league-a",
+    "name": "Kovács Gábor",
+    "sourceSheetName": "A liga",
+    "headerCell": "I1",
+    "rowCell": "A25",
+    "order": 8,
+    "active": true
+  },
+  {
+    "id": "player-league-b-1-s-kovics-p-ter",
+    "leagueId": "league-b",
+    "name": "Sákovics Péter",
+    "sourceSheetName": "B liga",
+    "headerCell": "B1",
+    "rowCell": "A4",
+    "order": 1,
+    "active": true
+  },
+  {
+    "id": "player-league-b-2-t-th-istv-n",
+    "leagueId": "league-b",
+    "name": "Tóth István",
+    "sourceSheetName": "B liga",
+    "headerCell": "C1",
+    "rowCell": "A7",
+    "order": 2,
+    "active": true
+  },
+  {
+    "id": "player-league-b-3-kulcs-r-s-ndor",
+    "leagueId": "league-b",
+    "name": "Kulcsár Sándor",
+    "sourceSheetName": "B liga",
+    "headerCell": "D1",
+    "rowCell": "A10",
+    "order": 3,
+    "active": true
+  },
+  {
+    "id": "player-league-b-4-bikali-bal-zs",
+    "leagueId": "league-b",
+    "name": "Bikali Balázs",
+    "sourceSheetName": "B liga",
+    "headerCell": "E1",
+    "rowCell": "A13",
+    "order": 4,
+    "active": true
+  },
+  {
+    "id": "player-league-b-5-mark-zolt-n",
+    "leagueId": "league-b",
+    "name": "Markó Zoltán",
+    "sourceSheetName": "B liga",
+    "headerCell": "F1",
+    "rowCell": "A16",
+    "order": 5,
+    "active": true
+  },
+  {
+    "id": "player-league-b-6-czupor-andr-s",
+    "leagueId": "league-b",
+    "name": "Czupor András",
+    "sourceSheetName": "B liga",
+    "headerCell": "G1",
+    "rowCell": "A19",
+    "order": 6,
+    "active": true
+  },
+  {
+    "id": "player-league-b-7-varga-lorena",
+    "leagueId": "league-b",
+    "name": "Varga Lorena",
+    "sourceSheetName": "B liga",
+    "headerCell": "H1",
+    "rowCell": "A22",
+    "order": 7,
+    "active": true
+  },
+  {
+    "id": "player-league-b-8-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "name": "Kovács László",
+    "sourceSheetName": "B liga",
+    "headerCell": "I1",
+    "rowCell": "A25",
+    "order": 8,
+    "active": true
+  },
+  {
+    "id": "player-league-c-1-sz-kely-rp-d",
+    "leagueId": "league-c",
+    "name": "Székely Árpád",
+    "sourceSheetName": "C liga",
+    "headerCell": "B1",
+    "rowCell": "A4",
+    "order": 1,
+    "active": true
+  },
+  {
+    "id": "player-league-c-2-t-th-b-lint",
+    "leagueId": "league-c",
+    "name": "Tóth Bálint",
+    "sourceSheetName": "C liga",
+    "headerCell": "C1",
+    "rowCell": "A7",
+    "order": 2,
+    "active": true
+  },
+  {
+    "id": "player-league-c-3-b-rzs-nyi-bal-zs",
+    "leagueId": "league-c",
+    "name": "Börzsönyi Balázs",
+    "sourceSheetName": "C liga",
+    "headerCell": "D1",
+    "rowCell": "A10",
+    "order": 3,
+    "active": true
+  },
+  {
+    "id": "player-league-c-4-kmet-alex",
+    "leagueId": "league-c",
+    "name": "Kmet Alex",
+    "sourceSheetName": "C liga",
+    "headerCell": "E1",
+    "rowCell": "A13",
+    "order": 4,
+    "active": true
+  },
+  {
+    "id": "player-league-c-5-bartus-p-ter",
+    "leagueId": "league-c",
+    "name": "Bartus Péter",
+    "sourceSheetName": "C liga",
+    "headerCell": "F1",
+    "rowCell": "A16",
+    "order": 5,
+    "active": true
+  },
+  {
+    "id": "player-league-c-6-fekete-tam-s",
+    "leagueId": "league-c",
+    "name": "Fekete Tamás",
+    "sourceSheetName": "C liga",
+    "headerCell": "G1",
+    "rowCell": "A19",
+    "order": 6,
+    "active": true
+  },
+  {
+    "id": "player-league-c-7-varga-tam-s",
+    "leagueId": "league-c",
+    "name": "Varga Tamás",
+    "sourceSheetName": "C liga",
+    "headerCell": "H1",
+    "rowCell": "A22",
+    "order": 7,
+    "active": true
+  },
+  {
+    "id": "player-league-c-8-hatos-bal-zs",
+    "leagueId": "league-c",
+    "name": "Hatos Balázs",
+    "sourceSheetName": "C liga",
+    "headerCell": "I1",
+    "rowCell": "A25",
+    "order": 8,
+    "active": true
+  },
+  {
+    "id": "player-league-d-1-bankits-csaba",
+    "leagueId": "league-d",
+    "name": "Bankits Csaba",
+    "sourceSheetName": "D liga",
+    "headerCell": "B1",
+    "rowCell": "A4",
+    "order": 1,
+    "active": true
+  },
+  {
+    "id": "player-league-d-2-makszin-mikl-s",
+    "leagueId": "league-d",
+    "name": "Makszin Miklós",
+    "sourceSheetName": "D liga",
+    "headerCell": "C1",
+    "rowCell": "A7",
+    "order": 2,
+    "active": true
+  },
+  {
+    "id": "player-league-d-3-b-r-zolt-n",
+    "leagueId": "league-d",
+    "name": "Bíró Zoltán",
+    "sourceSheetName": "D liga",
+    "headerCell": "D1",
+    "rowCell": "A10",
+    "order": 3,
+    "active": true
+  },
+  {
+    "id": "player-league-d-4-zsoldos-tam-s",
+    "leagueId": "league-d",
+    "name": "Zsoldos Tamás",
+    "sourceSheetName": "D liga",
+    "headerCell": "E1",
+    "rowCell": "A13",
+    "order": 4,
+    "active": true
+  },
+  {
+    "id": "player-league-d-5-luk-cs-d-niel",
+    "leagueId": "league-d",
+    "name": "Lukács Dániel",
+    "sourceSheetName": "D liga",
+    "headerCell": "F1",
+    "rowCell": "A16",
+    "order": 5,
+    "active": true
+  },
+  {
+    "id": "player-league-d-6-moln-r-mil-n",
+    "leagueId": "league-d",
+    "name": "Molnár Milán",
+    "sourceSheetName": "D liga",
+    "headerCell": "G1",
+    "rowCell": "A19",
+    "order": 6,
+    "active": true
+  },
+  {
+    "id": "player-league-d-7-bogn-r-barna",
+    "leagueId": "league-d",
+    "name": "Bognár Barna",
+    "sourceSheetName": "D liga",
+    "headerCell": "H1",
+    "rowCell": "A22",
+    "order": 7,
+    "active": true
+  },
+  {
+    "id": "player-league-d-8-g-sp-r-j-lia",
+    "leagueId": "league-d",
+    "name": "Gáspár Júlia",
+    "sourceSheetName": "D liga",
+    "headerCell": "I1",
+    "rowCell": "A25",
+    "order": 8,
+    "active": true
+  },
+  {
+    "id": "player-league-e-1-bakos-m-ty-s",
+    "leagueId": "league-e",
+    "name": "Bakos Mátyás",
+    "sourceSheetName": "E liga",
+    "headerCell": "B1",
+    "rowCell": "A4",
+    "order": 1,
+    "active": true
+  },
+  {
+    "id": "player-league-e-2-szerdahelyi-d-niel",
+    "leagueId": "league-e",
+    "name": "Szerdahelyi Dániel",
+    "sourceSheetName": "E liga",
+    "headerCell": "C1",
+    "rowCell": "A7",
+    "order": 2,
+    "active": true
+  },
+  {
+    "id": "player-league-e-3-vincze-kriszti-n",
+    "leagueId": "league-e",
+    "name": "Vincze Krisztián",
+    "sourceSheetName": "E liga",
+    "headerCell": "D1",
+    "rowCell": "A10",
+    "order": 3,
+    "active": true
+  },
+  {
+    "id": "player-league-e-4-hajba-tibor",
+    "leagueId": "league-e",
+    "name": "Hajba Tibor",
+    "sourceSheetName": "E liga",
+    "headerCell": "E1",
+    "rowCell": "A13",
+    "order": 4,
+    "active": true
+  },
+  {
+    "id": "player-league-e-5-hajba-zo",
+    "leagueId": "league-e",
+    "name": "Hajba Zoé",
+    "sourceSheetName": "E liga",
+    "headerCell": "F1",
+    "rowCell": "A16",
+    "order": 5,
+    "active": true
+  },
+  {
+    "id": "player-league-e-6-kov-cs-zsolt",
+    "leagueId": "league-e",
+    "name": "Kovács Zsolt",
+    "sourceSheetName": "E liga",
+    "headerCell": "G1",
+    "rowCell": "A19",
+    "order": 6,
+    "active": true
+  },
+  {
+    "id": "player-league-e-7-szekeres-martin",
+    "leagueId": "league-e",
+    "name": "Szekeres Martin",
+    "sourceSheetName": "E liga",
+    "headerCell": "H1",
+    "rowCell": "A22",
+    "order": 7,
+    "active": true
+  },
+  {
+    "id": "player-league-e-8-n-meh-bal-zs",
+    "leagueId": "league-e",
+    "name": "Némeh Balázs",
+    "sourceSheetName": "E liga",
+    "headerCell": "I1",
+    "rowCell": "A25",
+    "order": 8,
+    "active": true
+  },
+  {
+    "id": "player-league-e-9-nagy-zolt-n",
+    "leagueId": "league-e",
+    "name": "Nagy Zoltán",
+    "sourceSheetName": "E liga",
+    "headerCell": "J1",
+    "rowCell": "A28",
+    "order": 9,
+    "active": true
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "league-a",
+    "sheetName": "A liga",
+    "name": "A liga",
+    "classLabel": "1. osztály",
+    "order": 1,
+    "playerCount": 8
+  },
+  {
+    "id": "league-b",
+    "sheetName": "B liga",
+    "name": "B liga",
+    "classLabel": "2. osztály",
+    "order": 2,
+    "playerCount": 8
+  },
+  {
+    "id": "league-c",
+    "sheetName": "C liga",
+    "name": "C liga",
+    "classLabel": "3. osztály",
+    "order": 3,
+    "playerCount": 8
+  },
+  {
+    "id": "league-d",
+    "sheetName": "D liga",
+    "name": "D liga",
+    "classLabel": "4. osztály",
+    "order": 4,
+    "playerCount": 8
+  },
+  {
+    "id": "league-e",
+    "sheetName": "E liga",
+    "name": "E liga",
+    "classLabel": "5. osztály",
+    "order": 5,
+    "playerCount": 9
+  }
+]
