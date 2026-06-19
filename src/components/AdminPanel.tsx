@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Player, League, Match, Sponsor, SetScore, MatchScore } from '../types';
 import { 
   Trophy, Users, Calendar, CheckCircle2, XCircle, Edit3, Save, Plus, 

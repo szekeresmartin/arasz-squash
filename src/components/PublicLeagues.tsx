@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Player, League, Match, Standing } from '../types';
 import { Trophy, Calendar, Users, FileText, ArrowLeft, RefreshCw, Star, MapPin, Eye, CheckCircle2, AlertCircle, Send } from 'lucide-react';
-import { calculateStandings } from '../data';
+import { calculateStandings, getLeagueClassLabel } from '../data';
 import SubmitResult from './SubmitResult';
 
 interface PublicLeaguesProps {
@@ -10,7 +10,6 @@ interface PublicLeaguesProps {
   matches: Match[];
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   selectedLeagueId: string | null;
-  setSelectedLeagueId: (id: string | null) => void;
   initialSubTab?: string;
   onSubmitResult: (newSubmission: Match) => void;
 }
@@ -21,7 +20,6 @@ export default function PublicLeagues({
   matches,
   setView,
   selectedLeagueId,
-  setSelectedLeagueId,
   initialSubTab = 'tabella',
   onSubmitResult
 }: PublicLeaguesProps) {
@@ -34,12 +32,15 @@ export default function PublicLeagues({
     }
   }, [initialSubTab, selectedLeagueId]);
 
-  const getPlayerName = (id: string) => {
-    return players.find(p => p.id === id)?.name || 'Ismeretlen';
+  const navigateToTab = (tabId: string) => {
+    setActiveTab(tabId);
+    if (selectedLeagueId) {
+      setView('leagues', { leagueId: selectedLeagueId, subTab: tabId });
+    }
   };
 
-  const getCompletedMatchesCount = (leagueId: string) => {
-    return matches.filter(m => m.leagueId === leagueId && m.status === 'Jóváhagyva').length;
+  const getPlayerName = (id: string) => {
+    return players.find(p => p.id === id)?.name || 'Ismeretlen';
   };
 
   const currentLeague = leagues.find(l => l.id === selectedLeagueId);
@@ -79,20 +80,16 @@ export default function PublicLeagues({
       <div className="space-y-8 animate-fadeIn pb-16">
         <div>
           <span className="bg-brand-red/10 text-brand-red font-mono font-bold text-xs px-2.5 py-1 rounded-md uppercase tracking-wider">
-            Aktív bajnokságok
+            Válassz bajnokságot
           </span>
           <h2 className="text-3xl font-display font-extrabold text-gray-900 mt-2">Squash Ligacsoportok</h2>
           <p className="text-sm text-gray-500 font-sans mt-1">
-            Válaszd ki az alábbi ligákat a részletes tabellákhoz, eredményekhez és sorsolásokhoz.
+            Előbb válassz ligát, utána nyílik meg a tabella, a sorsolás, az eredmények és az eredménybeküldés.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {leagues.map((league) => {
-            const leaguePlayersCount = league.playerIds.length;
-            const matchesCount = getCompletedMatchesCount(league.id);
-            const totalMatchesInLeague = matches.filter(m => m.leagueId === league.id).length;
-
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+          {leagues.filter((league) => league.isActive).map((league) => {
             return (
               <div
                 key={league.id}
@@ -108,40 +105,18 @@ export default function PublicLeagues({
                       {league.name}
                     </h3>
                     <span className="text-[10px] font-mono font-bold px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md">
-                      AKTÍV
+                      {getLeagueClassLabel(league.id)}
                     </span>
-                  </div>
-                  
-                  <p className="text-xs text-gray-500 font-mono mt-1">{league.season}</p>
-                  
-                  <div className="grid grid-cols-2 gap-4 mt-6 py-4 border-y border-gray-100">
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-mono text-gray-400">Játékosok</p>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-semibold text-gray-800">{leaguePlayersCount} fő</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1 border-l border-gray-100 pl-4">
-                      <p className="text-[10px] uppercase font-mono text-gray-400">Meccsek (L/Ö)</p>
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-semibold text-gray-800">{matchesCount} / {totalMatchesInLeague}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
                 <div className="mt-6">
                   <button
-                    onClick={() => {
-                      setSelectedLeagueId(league.id);
-                      setActiveTab('tabella');
-                    }}
+                    onClick={() => setView('leagues', { leagueId: league.id, subTab: 'tabella' })}
                     className="w-full bg-gray-50 group-hover:bg-brand-red group-hover:text-white group-hover:border-brand-red border border-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl text-xs font-mono uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2"
                     id={`view-league-${league.id}`}
                   >
-                    Megnézem az adatokat
+                    Megnézem
                     <Eye className="w-4 h-4" />
                   </button>
                 </div>
@@ -163,7 +138,7 @@ export default function PublicLeagues({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => setSelectedLeagueId(null)}
+            onClick={() => setView('leagues')}
             className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-xs transition-colors"
             id="back-to-leagues"
             title="Vissza a ligákhoz"
@@ -176,11 +151,7 @@ export default function PublicLeagues({
                 {currentLeague.name}
               </h1>
               <span className="text-xs font-mono bg-red-50 text-brand-red font-bold px-2.5 py-0.5 rounded-md border border-red-100">
-                {selectedLeagueId === 'l1' ? '1. osztály' :
-                 selectedLeagueId === 'l2' ? '2. osztály' :
-                 selectedLeagueId === 'l3' ? '3. osztály' :
-                 selectedLeagueId === 'l4' ? '4. osztály' :
-                 selectedLeagueId === 'l5' ? '5. osztály' : 'Bajnokság'}
+                {getLeagueClassLabel(selectedLeagueId || currentLeague.id)}
               </span>
               <span className="text-xs font-mono bg-emerald-50 text-emerald-700 font-bold px-2.5 py-0.5 rounded-md border border-emerald-150">
                 Folyamatban
@@ -192,7 +163,7 @@ export default function PublicLeagues({
 
         {/* Eredmény beküldése gyors gomb - átirányítás a belső fülre */}
         <button
-          onClick={() => setActiveTab('eredmeny_bekuldese')}
+          onClick={() => navigateToTab('eredmeny_bekuldese')}
           className="bg-brand-red text-white text-xs font-mono font-bold uppercase tracking-wider px-5 py-3.5 rounded-xl hover:bg-brand-maroon shadow-xs transition-all flex items-center justify-center gap-2"
           id="league-detail-submit"
         >
@@ -215,7 +186,7 @@ export default function PublicLeagues({
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => navigateToTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all whitespace-nowrap rounded-t-lg ${
                 isSelected
                   ? 'border-brand-red text-brand-red bg-red-50/20'
@@ -458,7 +429,7 @@ export default function PublicLeagues({
                               </div>
                             ) : (
                               <button
-                                onClick={() => setActiveTab('eredmeny_bekuldese')}
+                                onClick={() => navigateToTab('eredmeny_bekuldese')}
                                 className="w-full md:w-auto bg-gray-100 hover:bg-brand-red hover:text-white text-gray-700 font-mono text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg border border-gray-200 hover:border-brand-red transition-all cursor-pointer"
                                 id={`submit-result-btn-${match.id}`}
                               >

@@ -1,20 +1,13 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Arasz-Öntöde Squashliga
 
-# Run and deploy your AI Studio app
+Vite + React + TypeScript alapú squash liga prototípus.
 
-This contains everything you need to run your app locally.
+## Futatás
 
-View your app in AI Studio: https://ai.studio/apps/be50e82a-1cde-4f33-bc9d-a871e987d5b0
+1. Függőségek telepítése: `npm install`
+2. Fejlesztői szerver indítása: `npm run dev`
+3. Production build: `npm run build`
 
-## Run Locally
+## Megjegyzés
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Az aktuális prototípushoz nem szükséges backend vagy AI API kulcs.

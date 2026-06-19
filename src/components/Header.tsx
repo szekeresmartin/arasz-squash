@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Menu, X, Trophy, Shield, FileText, Home, LogOut } from 'lucide-react';
+import { Menu, X, Trophy, FileText, Home } from 'lucide-react';
 
 interface HeaderProps {
   currentView: 'home' | 'leagues' | 'rules' | 'admin';
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
-  pendingSubmissionsCount: number;
 }
 
-export default function Header({ currentView, setView, pendingSubmissionsCount }: HeaderProps) {
+export default function Header({ currentView, setView }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigationItems = [
@@ -67,20 +66,6 @@ export default function Header({ currentView, setView, pendingSubmissionsCount }
             })}
           </nav>
 
-          {/* Action Zone: Only visible if on Admin mode to log out */}
-          <div className="hidden lg:flex items-center gap-3">
-            {currentView === 'admin' ? (
-              <button
-                onClick={() => handleNavClick('home')}
-                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-brand-red text-xs font-mono font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl border border-red-150 transition-all duration-200"
-                id="header-logout-button"
-              >
-                <LogOut className="w-4 h-4" />
-                Kilépés az Adminból
-              </button>
-            ) : null}
-          </div>
-
           {/* Hamburger Menu Trigger (Mobile) */}
           <div className="flex items-center gap-3 lg:hidden">
             <button
@@ -115,18 +100,6 @@ export default function Header({ currentView, setView, pendingSubmissionsCount }
             );
           })}
 
-          {currentView === 'admin' && (
-            <div className="pt-4 border-t border-gray-100">
-              <button
-                onClick={() => handleNavClick('home')}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-red-50 hover:bg-red-100 text-brand-red rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-center"
-                id="mobile-logout-button"
-              >
-                <LogOut className="w-4 h-4" />
-                Kilépés az Adminból
-              </button>
-            </div>
-          )}
         </div>
       )}
     </header>

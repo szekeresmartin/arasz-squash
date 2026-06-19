@@ -7,7 +7,14 @@ import Rules from './components/Rules';
 import AdminPanel from './components/AdminPanel';
 import SponsorBar from './components/SponsorBar';
 import { Player, League, Match, Sponsor, MatchScore } from './types';
-import { DEFAULT_PLAYERS, DEFAULT_LEAGUES, DEFAULT_MATCHES, DEFAULT_SPONSORS } from './data';
+import {
+  DEFAULT_PLAYERS,
+  DEFAULT_LEAGUES,
+  DEFAULT_MATCHES,
+  DEFAULT_SPONSORS,
+  getLeagueBySlug,
+  getLeagueSlug,
+} from './data';
 
 export default function App() {
   
@@ -74,27 +81,63 @@ export default function App() {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [selectedSubTab, setSelectedSubTab] = useState<string>('tabella');
 
+  const tabParamToState = (tab: string | null) => {
+    if (tab === 'eredmeny-bekuldese') return 'eredmeny_bekuldese';
+    if (tab === 'eredmenyek') return 'eredmenyek';
+    if (tab === 'sorsolas') return 'sorsolas';
+    if (tab === 'jatekosok') return 'jatekosok';
+    if (tab === 'szabalyok') return 'szabalyok';
+    return 'tabella';
+  };
+
+  const tabStateToParam = (tab: string) => {
+    if (tab === 'eredmeny_bekuldese') return 'eredmeny-bekuldese';
+    return tab;
+  };
+
+  const getLeaguePath = (leagueId: string, tab: string = 'tabella') => {
+    return `/bajnoksag/${getLeagueSlug(leagueId)}?tab=${tabStateToParam(tab)}`;
+  };
+
   // Útvonal-szinkronizáció beolvasása betöltéskor és lépkedésnél
   useEffect(() => {
     const syncViewFromLocation = () => {
       const path = window.location.pathname;
-      const hash = window.location.hash;
-      if (path === '/admin' || path === '/admin/login' || hash === '#admin') {
+      const search = new URLSearchParams(window.location.search);
+      const tab = tabParamToState(search.get('tab'));
+
+      if (path === '/admin' || path === '/admin/login') {
         setCurrentView('admin');
-      } else if (path === '/rules' || path === '/szabalyzat' || hash === '#rules') {
+        setSelectedLeagueId(null);
+        setSelectedSubTab('tabella');
+      } else if (path === '/rules' || path === '/szabalyzat') {
         setCurrentView('rules');
-      } else if (path === '/leagues' || path === '/bajnoksagok' || hash === '#leagues') {
+        setSelectedLeagueId(null);
+        setSelectedSubTab('tabella');
+      } else if (path === '/bajnoksag' || path === '/leagues' || path === '/bajnoksagok') {
         setCurrentView('leagues');
+        setSelectedLeagueId(null);
+        setSelectedSubTab(tab);
+      } else if (path.startsWith('/bajnoksag/')) {
+        const slug = path.split('/').filter(Boolean)[1];
+        const leagueMeta = slug ? getLeagueBySlug(slug) : undefined;
+        setCurrentView('leagues');
+        setSelectedLeagueId(leagueMeta?.id || null);
+        setSelectedSubTab(tab);
+      } else if (path === '/') {
+        setCurrentView('home');
+        setSelectedLeagueId(null);
+        setSelectedSubTab('tabella');
       } else {
         setCurrentView('home');
+        setSelectedLeagueId(null);
+        setSelectedSubTab('tabella');
       }
     };
     syncViewFromLocation();
     window.addEventListener('popstate', syncViewFromLocation);
-    window.addEventListener('hashchange', syncViewFromLocation);
     return () => {
       window.removeEventListener('popstate', syncViewFromLocation);
-      window.removeEventListener('hashchange', syncViewFromLocation);
     };
   }, []);
 
@@ -105,28 +148,32 @@ export default function App() {
   ) => {
     setCurrentView(view);
 
-    // Virtuális URL útvonal frissítése böngészőben (try-catch párosítva az iframe védelem érdekében)
     let path = '/';
-    if (view === 'admin') path = '/admin';
-    else if (view === 'rules') path = '/rules';
-    else if (view === 'leagues') path = '/leagues';
+    if (view === 'admin') {
+      path = '/admin';
+    } else if (view === 'rules') {
+      path = '/rules';
+      setSelectedLeagueId(null);
+      setSelectedSubTab('tabella');
+    } else if (view === 'leagues') {
+      if (extra?.leagueId) {
+        setSelectedLeagueId(extra.leagueId);
+        setSelectedSubTab(extra.subTab || 'tabella');
+        path = getLeaguePath(extra.leagueId, extra.subTab || 'tabella');
+      } else {
+        setSelectedLeagueId(null);
+        setSelectedSubTab(extra?.subTab || 'tabella');
+        path = '/bajnoksag';
+      }
+    } else {
+      setSelectedLeagueId(null);
+      setSelectedSubTab('tabella');
+    }
 
     try {
       window.history.pushState({}, '', path);
     } catch {
       // fallback ha iframe-beli biztonság korlátozza
-    }
-
-    if (view === 'leagues') {
-      if (extra?.leagueId) {
-        setSelectedLeagueId(extra.leagueId);
-      } else if (!selectedLeagueId) {
-        // Ha nincs kiválasztott liga és általánosan kattintanak rá, az első aktívat tesszük be
-        setSelectedLeagueId(leagues[0]?.id || null);
-      }
-      if (extra?.subTab) {
-        setSelectedSubTab(extra.subTab);
-      }
     }
   };
 
@@ -217,9 +264,6 @@ export default function App() {
     setSponsors(prev => prev.map(s => s.id === updated.id ? updated : s));
   };
 
-  // Függőben lévő meccsek száma az Admin jelvényhez
-  const pendingCount = matches.filter(m => m.status === 'Beküldve').length;
-
   return (
     <div className="min-h-screen bg-brand-light flex flex-col justify-between" id="app-wrapper">
       
@@ -227,7 +271,6 @@ export default function App() {
       <Header 
         currentView={currentView} 
         setView={handleSetView} 
-        pendingSubmissionsCount={pendingCount} 
       />
 
       {/* 2. Main Workstation Area */}
@@ -248,7 +291,6 @@ export default function App() {
             matches={matches}
             setView={handleSetView}
             selectedLeagueId={selectedLeagueId}
-            setSelectedLeagueId={setSelectedLeagueId}
             initialSubTab={selectedSubTab}
             onSubmitResult={handleSubmitResult}
           />

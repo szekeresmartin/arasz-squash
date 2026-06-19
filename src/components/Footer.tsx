@@ -1,8 +1,8 @@
 import React from 'react';
-import { Trophy, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { Trophy, Mail, MapPin } from 'lucide-react';
 
 interface FooterProps {
-  setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
+  setView: (view: 'home' | 'leagues' | 'rules', extra?: { leagueId?: string; subTab?: string }) => void;
 }
 
 export default function Footer({ setView }: FooterProps) {
@@ -49,11 +49,11 @@ export default function Footer({ setView }: FooterProps) {
                 </button>
               </li>
               <li>
-                <button 
+              <button 
                   onClick={() => setView('leagues', { subTab: 'tabella' })} 
                   className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
                 >
-                  Bajnokságok & Tabellák
+                  Bajnokságok
                 </button>
               </li>
               <li>
@@ -73,14 +73,6 @@ export default function Footer({ setView }: FooterProps) {
             <p className="text-xs text-gray-400 leading-relaxed font-sans">
               Minden bajnokság fülénél közvetlenül rögzíthető az eredmény. Az adatok adminisztrátori jóváhagyás után válnak hivatalossá és frissítik a tabellát.
             </p>
-            <div className="pt-2">
-              <button
-                onClick={() => setView('admin')}
-                className="w-full bg-gray-800 border border-gray-700 text-xs text-gray-300 font-mono font-bold py-2 rounded-lg hover:bg-gray-700 hover:text-white transition-colors uppercase tracking-wider cursor-pointer"
-              >
-                Szerkesztői Bejelentkezés
-              </button>
-            </div>
           </div>
 
         </div>
@@ -89,7 +81,7 @@ export default function Footer({ setView }: FooterProps) {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono text-gray-500">
           <p>© {new Date().getFullYear()} Arasz-Öntöde Squashliga. Minden jog fenntartva.</p>
           <p className="flex items-center gap-1">
-            Fejlesztve: <span className="text-gray-400">Google AI Studio</span>
+            Prototípus exportból
           </p>
         </div>
       </div>

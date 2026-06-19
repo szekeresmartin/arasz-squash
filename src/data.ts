@@ -60,6 +60,30 @@ export const DEFAULT_LEAGUES: League[] = [
   }
 ];
 
+export const LEAGUE_ROUTE_META = [
+  { id: 'l1', slug: 'a-liga', classLabel: '1. osztály' },
+  { id: 'l2', slug: 'b-liga', classLabel: '2. osztály' },
+  { id: 'l3', slug: 'c-liga', classLabel: '3. osztály' },
+  { id: 'l4', slug: 'd-liga', classLabel: '4. osztály' },
+  { id: 'l5', slug: 'e-liga', classLabel: '5. osztály' },
+] as const;
+
+export function getLeagueRouteMeta(leagueId: string) {
+  return LEAGUE_ROUTE_META.find(entry => entry.id === leagueId);
+}
+
+export function getLeagueBySlug(slug: string) {
+  return LEAGUE_ROUTE_META.find(entry => entry.slug === slug);
+}
+
+export function getLeagueClassLabel(leagueId: string) {
+  return getLeagueRouteMeta(leagueId)?.classLabel || 'Bajnokság';
+}
+
+export function getLeagueSlug(leagueId: string) {
+  return getLeagueRouteMeta(leagueId)?.slug || leagueId;
+}
+
 // Alapértelmezett Mérkőzések (Seeded Matches in multiple states)
 export const DEFAULT_MATCHES: Match[] = [
   // A Liga - Forduló 1
