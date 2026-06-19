@@ -1,0 +1,49 @@
+{
+  "sourceFile": "data/raw/viber-curated-results.txt",
+  "importedAt": "2026-06-19T20:18:24.103Z",
+  "totalRows": 25,
+  "parsedRows": 25,
+  "appendedOfficialResults": 13,
+  "skippedAlreadyApproved": 11,
+  "reviewRows": 1,
+  "unresolvedPlayers": 1,
+  "unresolvedMatches": 1,
+  "invalidTokens": 0,
+  "perLeagueSummary": [
+    {
+      "leagueId": "league-a",
+      "rowsInSource": 2,
+      "appendedOfficialResults": 2,
+      "skippedAlreadyApproved": 0,
+      "reviewRows": 0
+    },
+    {
+      "leagueId": "league-b",
+      "rowsInSource": 3,
+      "appendedOfficialResults": 2,
+      "skippedAlreadyApproved": 0,
+      "reviewRows": 1
+    },
+    {
+      "leagueId": "league-c",
+      "rowsInSource": 1,
+      "appendedOfficialResults": 1,
+      "skippedAlreadyApproved": 0,
+      "reviewRows": 0
+    },
+    {
+      "leagueId": "league-d",
+      "rowsInSource": 6,
+      "appendedOfficialResults": 3,
+      "skippedAlreadyApproved": 3,
+      "reviewRows": 0
+    },
+    {
+      "leagueId": "league-e",
+      "rowsInSource": 13,
+      "appendedOfficialResults": 5,
+      "skippedAlreadyApproved": 8,
+      "reviewRows": 0
+    }
+  ]
+}

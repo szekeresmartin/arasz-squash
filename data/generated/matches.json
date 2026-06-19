@@ -61,7 +61,8 @@
     "player1Id": "player-league-a-2-t-th-zolt-n",
     "player2Id": "player-league-a-3-polg-r-istv-n",
     "sourceCell": "D7",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-a-2-3-t-th-zolt-n-polg-r-istv-n"
   },
   {
     "id": "match-league-a-2-4-t-th-zolt-n-weisz-gy-rgy",
@@ -133,7 +134,8 @@
     "player1Id": "player-league-a-3-polg-r-istv-n",
     "player2Id": "player-league-a-7-p-k-r-bert",
     "sourceCell": "H10",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-a-3-7-polg-r-istv-n-p-k-r-bert"
   },
   {
     "id": "match-league-a-3-8-polg-r-istv-n-kov-cs-g-bor",
@@ -253,7 +255,8 @@
     "player1Id": "player-league-b-1-s-kovics-p-ter",
     "player2Id": "player-league-b-5-mark-zolt-n",
     "sourceCell": "F4",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-b-1-5-s-kovics-p-ter-mark-zolt-n"
   },
   {
     "id": "match-league-b-1-6-s-kovics-p-ter-czupor-andr-s",
@@ -397,7 +400,8 @@
     "player1Id": "player-league-b-4-bikali-bal-zs",
     "player2Id": "player-league-b-8-kov-cs-l-szl",
     "sourceCell": "I13",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-b-4-8-bikali-bal-zs-kov-cs-l-szl"
   },
   {
     "id": "match-league-b-5-6-mark-zolt-n-czupor-andr-s",
@@ -637,7 +641,8 @@
     "player1Id": "player-league-c-5-bartus-p-ter",
     "player2Id": "player-league-c-7-varga-tam-s",
     "sourceCell": "H16",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-c-5-7-bartus-p-ter-varga-tam-s"
   },
   {
     "id": "match-league-c-5-8-bartus-p-ter-hatos-bal-zs",
@@ -709,7 +714,8 @@
     "player1Id": "player-league-d-1-bankits-csaba",
     "player2Id": "player-league-d-6-moln-r-mil-n",
     "sourceCell": "G4",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-d-1-6-bankits-csaba-moln-r-mil-n"
   },
   {
     "id": "match-league-d-1-7-bankits-csaba-bogn-r-barna",
@@ -823,7 +829,8 @@
     "player1Id": "player-league-d-4-zsoldos-tam-s",
     "player2Id": "player-league-d-5-luk-cs-d-niel",
     "sourceCell": "F13",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-d-4-5-zsoldos-tam-s-luk-cs-d-niel"
   },
   {
     "id": "match-league-d-4-6-zsoldos-tam-s-moln-r-mil-n",
@@ -891,7 +898,8 @@
     "player1Id": "player-league-d-6-moln-r-mil-n",
     "player2Id": "player-league-d-8-g-sp-r-j-lia",
     "sourceCell": "I19",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-d-6-8-moln-r-mil-n-g-sp-r-j-lia"
   },
   {
     "id": "match-league-d-7-8-bogn-r-barna-g-sp-r-j-lia",
@@ -959,7 +967,8 @@
     "player1Id": "player-league-e-1-bakos-m-ty-s",
     "player2Id": "player-league-e-8-n-meh-bal-zs",
     "sourceCell": "I4",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-e-1-8-bakos-m-ty-s-n-meh-bal-zs"
   },
   {
     "id": "match-league-e-1-9-bakos-m-ty-s-nagy-zolt-n",
@@ -985,7 +994,8 @@
     "player1Id": "player-league-e-2-szerdahelyi-d-niel",
     "player2Id": "player-league-e-4-hajba-tibor",
     "sourceCell": "E7",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-e-2-4-szerdahelyi-d-niel-hajba-tibor"
   },
   {
     "id": "match-league-e-2-5-szerdahelyi-d-niel-hajba-zo",
@@ -1019,7 +1029,8 @@
     "player1Id": "player-league-e-2-szerdahelyi-d-niel",
     "player2Id": "player-league-e-8-n-meh-bal-zs",
     "sourceCell": "I7",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-e-2-8-szerdahelyi-d-niel-n-meh-bal-zs"
   },
   {
     "id": "match-league-e-2-9-szerdahelyi-d-niel-nagy-zolt-n",
@@ -1063,7 +1074,8 @@
     "player1Id": "player-league-e-3-vincze-kriszti-n",
     "player2Id": "player-league-e-7-szekeres-martin",
     "sourceCell": "H10",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-e-3-7-vincze-kriszti-n-szekeres-martin"
   },
   {
     "id": "match-league-e-3-8-vincze-kriszti-n-n-meh-bal-zs",
@@ -1153,7 +1165,8 @@
     "player1Id": "player-league-e-5-hajba-zo",
     "player2Id": "player-league-e-9-nagy-zolt-n",
     "sourceCell": "J16",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-e-5-9-hajba-zo-nagy-zolt-n"
   },
   {
     "id": "match-league-e-6-7-kov-cs-zsolt-szekeres-martin",
