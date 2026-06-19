@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, MapPin, FileText } from 'lucide-react';
+import { Trophy, FileText } from 'lucide-react';
 
 interface FooterProps {
   setView: (view: 'home' | 'leagues' | 'rules', extra?: { leagueId?: string; subTab?: string }) => void;
@@ -24,15 +24,9 @@ export default function Footer({ setView }: FooterProps) {
             <p className="text-sm text-gray-400 max-w-sm font-sans">
               A megye legmodernebb, legpörgősebb amatőr fallabda bajnoksága. Csatlakozz hozzánk, játssz sportszerűen és küzdj meg a bajnoki címért!
             </p>
-            <div className="flex flex-col gap-2 pt-2 text-xs text-gray-400 font-mono">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-brand-red" />
-                <span>Arasz Squash Club, 8000 Székesfehérvár, Ady u. 12.</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-brand-red" />
-                <span>Publikus felület importált ligaadatokkal</span>
-              </div>
+            <div className="flex items-center gap-2 pt-2 text-xs text-gray-400 font-mono">
+              <FileText className="w-4 h-4 text-brand-red" />
+              <span>Publikus felület importált ligaadatokkal</span>
             </div>
           </div>
 

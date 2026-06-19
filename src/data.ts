@@ -142,6 +142,8 @@ export const DEFAULT_PLAYERS: Player[] = GENERATED_PLAYERS.map((player) => ({
 
 export const DEFAULT_RESULTS: Result[] = GENERATED_RESULTS.map(result => ({
   ...result,
+  playedOnCourt: result.kind === 'score',
+  isForfeit: result.kind === 'walkover',
 }));
 
 export const DEFAULT_MATCHES: Match[] = GENERATED_MATCHES.map((match) => {
@@ -209,7 +211,10 @@ export function calculateStandings(players: Player[], matches: Match[], results:
       losses: 0,
       setsWon: 0,
       setsLost: 0,
-      points: 0,
+      setDifference: 0,
+      basePoints: 0,
+      rankingScore: 0,
+      position: 0,
       form: [],
     });
   }
@@ -219,6 +224,23 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     .filter(result => result.status === 'approved' && playerRows.has(result.player1Id) && playerRows.has(result.player2Id))
     .slice()
     .sort((a, b) => (matchOrder.get(a.matchId) ?? 0) - (matchOrder.get(b.matchId) ?? 0));
+
+  const getBasePointsForPlayer = (result: Result, isPlayer1: boolean) => {
+    const playerWon = isPlayer1
+      ? result.normalizedSetsWon > result.normalizedSetsLost
+      : result.normalizedSetsLost > result.normalizedSetsWon;
+
+    if (result.kind === 'walkover') {
+      return playerWon ? 5 : 0;
+    }
+
+    if (playerWon) {
+      return 5;
+    }
+
+    const loserSets = isPlayer1 ? result.normalizedSetsWon : result.normalizedSetsLost;
+    return loserSets + 1;
+  };
 
   for (const result of approvedResults) {
     const row1 = playerRows.get(result.player1Id);
@@ -230,35 +252,80 @@ export function calculateStandings(players: Player[], matches: Match[], results:
 
     row1.matchesPlayed += 1;
     row2.matchesPlayed += 1;
-    row1.setsWon += result.normalizedSetsWon;
-    row1.setsLost += result.normalizedSetsLost;
-    row2.setsWon += result.normalizedSetsLost;
-    row2.setsLost += result.normalizedSetsWon;
+    if (result.kind !== 'walkover') {
+      row1.setsWon += result.normalizedSetsWon;
+      row1.setsLost += result.normalizedSetsLost;
+      row2.setsWon += result.normalizedSetsLost;
+      row2.setsLost += result.normalizedSetsWon;
+    }
 
-    if (result.normalizedSetsWon > result.normalizedSetsLost) {
+    const row1Won = result.normalizedSetsWon > result.normalizedSetsLost;
+    const row2Won = result.normalizedSetsLost > result.normalizedSetsWon;
+
+    row1.basePoints += getBasePointsForPlayer(result, true);
+    row2.basePoints += getBasePointsForPlayer(result, false);
+
+    if (row1Won) {
       row1.wins += 1;
-      row1.points += 3;
       row1.form.push('W');
       row2.losses += 1;
       row2.form.push('L');
-    } else if (result.normalizedSetsLost > result.normalizedSetsWon) {
+    } else if (row2Won) {
       row2.wins += 1;
-      row2.points += 3;
       row2.form.push('W');
       row1.losses += 1;
       row1.form.push('L');
     }
   }
 
-  return [...playerRows.values()].sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
+  const standings = [...playerRows.values()].map(row => {
+    const setDifference = row.setsWon - row.setsLost;
+    return {
+      ...row,
+      setDifference,
+      rankingScore: row.basePoints * 1_000_000 + row.wins * 10_000 + setDifference * 100 + row.setsWon,
+      form: row.form.slice(-4),
+    };
+  });
+
+  const getHeadToHeadWinner = (playerAId: string, playerBId: string) => {
+    const directResults = approvedResults.filter(result => {
+      const pairMatches =
+        (result.player1Id === playerAId && result.player2Id === playerBId) ||
+        (result.player1Id === playerBId && result.player2Id === playerAId);
+      return pairMatches;
+    });
+
+    if (directResults.length !== 1) {
+      return null;
+    }
+
+    const result = directResults[0];
+    if (result.normalizedSetsWon === result.normalizedSetsLost) {
+      return null;
+    }
+
+    const player1Won = result.normalizedSetsWon > result.normalizedSetsLost;
+    const winnerId = player1Won ? result.player1Id : result.player2Id;
+    return winnerId === playerAId ? playerAId : winnerId === playerBId ? playerBId : null;
+  };
+
+  standings.sort((a, b) => {
+    if (b.basePoints !== a.basePoints) return b.basePoints - a.basePoints;
     if (b.wins !== a.wins) return b.wins - a.wins;
-    const diffB = b.setsWon - b.setsLost;
-    const diffA = a.setsWon - a.setsLost;
-    if (diffB !== diffA) return diffB - diffA;
+    if (b.setDifference !== a.setDifference) return b.setDifference - a.setDifference;
+    if (b.setsWon !== a.setsWon) return b.setsWon - a.setsWon;
+
+    const headToHeadWinner = getHeadToHeadWinner(a.playerId, b.playerId);
+    if (headToHeadWinner === a.playerId) return -1;
+    if (headToHeadWinner === b.playerId) return 1;
+
+    // TODO: többes holtverseny esetén később admin / bizottsági döntés lehet szükséges.
     return a.playerName.localeCompare(b.playerName, 'hu');
-  }).map(row => ({
+  });
+
+  return standings.map((row, index) => ({
     ...row,
-    form: row.form.slice(-4),
+    position: index + 1,
   }));
 }

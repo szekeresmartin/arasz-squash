@@ -59,7 +59,10 @@ export interface Standing {
   losses: number;
   setsWon: number;
   setsLost: number;
-  points: number;
+  setDifference: number;
+  basePoints: number;
+  rankingScore: number;
+  position: number;
   form: ('W' | 'L')[];
 }
 
@@ -80,6 +83,8 @@ export interface Result {
   normalizedSetsLost: number;
   kind: ResultKind;
   status: ResultStatus;
+  playedOnCourt?: boolean;
+  isForfeit?: boolean;
 }
 
 export interface Sponsor {

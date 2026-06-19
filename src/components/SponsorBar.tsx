@@ -18,14 +18,14 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
         </div>
 
         {/* Desktop view: Single row flex grid, Mobile view: Grid or scrollable wrapper */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-center justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 items-stretch justify-center">
           {activeSponsors.map((sponsor) => (
             <a
               key={sponsor.id}
               href={sponsor.websiteUrl || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative flex flex-col items-center justify-center bg-white border border-gray-200/80 rounded-xl p-5 hover:border-brand-red hover:shadow-md transition-all duration-300 overflow-hidden"
+              className="group relative flex flex-col items-center justify-center bg-white border border-gray-200/80 rounded-xl p-4 sm:p-5 hover:border-brand-red hover:shadow-md transition-all duration-300 overflow-hidden min-h-28"
               id={`sponsor-card-${sponsor.id}`}
             >
               {/* Decorative top-line gradient */}

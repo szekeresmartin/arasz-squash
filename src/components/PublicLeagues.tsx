@@ -187,7 +187,7 @@ export default function PublicLeagues({
               onClick={() => navigateToTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all whitespace-nowrap rounded-t-lg ${
                 isSelected
-                  ? 'border-brand-red text-brand-red bg-red-50/20'
+                  ? 'border-brand-red text-brand-red bg-red-50/30 shadow-[inset_0_-1px_0_0_rgba(163,0,0,0.08)]'
                   : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
               }`}
               id={`tab-btn-${tab.id}`}
@@ -208,7 +208,7 @@ export default function PublicLeagues({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left" id="standings-table">
+            <table className="w-full min-w-[920px] text-left" id="standings-table">
               <thead>
                 <tr className="border-b border-gray-200 text-xs font-mono font-bold uppercase tracking-wider text-gray-400 bg-gray-50">
                   <th className="py-3.5 px-4 text-center w-12">Hely</th>
@@ -224,7 +224,7 @@ export default function PublicLeagues({
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {standings.map((standing, index) => {
-                  const diff = standing.setsWon - standing.setsLost;
+                  const diff = standing.setDifference;
 
                   return (
                     <tr key={standing.playerId} className="hover:bg-gray-50/50 transition-colors text-sm">
@@ -238,7 +238,7 @@ export default function PublicLeagues({
                             ? 'bg-amber-100 text-amber-800'
                             : 'text-gray-500'
                         }`}>
-                          {index + 1}
+                          {standing.position}
                         </span>
                       </td>
 
@@ -269,7 +269,7 @@ export default function PublicLeagues({
                       </td>
 
                       <td className="py-4 px-4 text-center font-mono font-extrabold text-brand-red text-base">
-                        {standing.points}
+                        {standing.basePoints}
                       </td>
 
                       <td className="py-4 px-4">
@@ -299,8 +299,8 @@ export default function PublicLeagues({
           </div>
           
           <div className="mt-8 border-t border-gray-100 pt-4 flex flex-col sm:flex-row justify-between text-xs text-gray-400 font-mono gap-2">
-            <span>Győzelem = 3 pont | Vereség = 0 pont</span>
-            <span>Azonos pontnál a győzelmek száma, majd a szettkülönbség dönt.</span>
+            <span>Győzelem = 5 pont | Vereség: 2/3 = 3, 1/4 = 2, 0/5 = 1, játék nélkül = 0</span>
+            <span>Azonos pontnál a győzelmek száma, a szettkülönbség, majd a nyert szettek döntnek.</span>
           </div>
           {approvedLeagueResults.length === 0 && (
             <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-500">
@@ -491,11 +491,11 @@ export default function PublicLeagues({
                       </div>
 
                       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-150">
-                        <div className="text-[10px] font-mono text-gray-400">
-                          {result.sourceCells.join(' • ')}
-                        </div>
+                      <div className="text-[10px] font-mono text-gray-400">
+                        {result.sourceCells.join(' • ')}
+                      </div>
 
-                        <div className="bg-gray-100 border text-gray-800 text-sm font-mono font-bold px-3.5 py-1.5 rounded-lg">
+                      <div className="bg-gray-100 border text-gray-800 text-sm font-mono font-bold px-3.5 py-1.5 rounded-lg">
                           {result.normalizedSetsWon} : {result.normalizedSetsLost}
                         </div>
                       </div>
@@ -541,7 +541,7 @@ export default function PublicLeagues({
                       </div>
                       <div className="bg-white py-1.5 rounded border border-gray-100">
                         <span className="text-[9px] uppercase text-gray-400 block">Összpont</span>
-                        <span className="text-sm font-bold text-brand-red">{standing ? standing.points : 0} pont</span>
+                        <span className="text-sm font-bold text-brand-red">{standing ? standing.basePoints : 0} pont</span>
                       </div>
                     </div>
                   </div>

@@ -23,7 +23,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-xs" id="app-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-16 sm:h-20 gap-3">
           
           {/* Logo Brand Zone */}
           <div 
@@ -35,10 +35,10 @@ export default function Header({ currentView, setView }: HeaderProps) {
               <Trophy className="w-5.5 h-5.5" />
             </div>
             <div>
-              <span className="font-display font-black text-lg tracking-tight text-gray-900 uppercase block leading-none">
+              <span className="font-display font-black text-base sm:text-lg tracking-tight text-gray-900 uppercase block leading-none">
                 Arasz-Öntöde
               </span>
-              <span className="text-[10px] font-mono tracking-widest text-[#9C1C1C] uppercase font-extrabold mt-0.5 block">
+              <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-[#9C1C1C] uppercase font-extrabold mt-0.5 block">
                 Squashliga
               </span>
             </div>
