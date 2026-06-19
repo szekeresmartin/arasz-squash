@@ -469,5 +469,26 @@
     "source": "curated_viber",
     "importedAt": "2026-06-19T20:18:24.103Z",
     "sourceReference": "curated-viber-748912f7e374fb2f"
+  },
+  {
+    "id": "result-league-b-6-8-czupor-andr-s-kov-cs-l-szl",
+    "leagueId": "league-b",
+    "matchId": "match-league-b-6-8-czupor-andr-s-kov-cs-l-szl",
+    "player1Id": "player-league-b-6-czupor-andr-s",
+    "player2Id": "player-league-b-8-kov-cs-l-szl",
+    "sourceSheet": "B liga",
+    "sourceCells": [],
+    "rawHomeToken": "5/0",
+    "rawAwayToken": "0/5",
+    "normalizedSetsWon": 5,
+    "normalizedSetsLost": 0,
+    "kind": "score",
+    "status": "approved",
+    "playedOnCourt": true,
+    "isForfeit": false,
+    "normalizedToken": "5/0",
+    "source": "curated_viber",
+    "importedAt": "2026-06-19T20:23:26.220Z",
+    "sourceReference": "curated-viber-c058a6b81e5c947a"
   }
 ]

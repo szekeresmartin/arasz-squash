@@ -158,7 +158,7 @@ const NAME_ALIASES: Record<string, string> = {
   'zsoldos tamas': 'Zsoldos Tamás',
   'lukacs daniel': 'Lukács Dániel',
   'sakovics peter': 'Sákovics Péter',
-  'czupor attila': 'Czupor Attila',
+  'czupor andras': 'Czupor András',
 };
 
 const MANUAL_LEAGUE_NAME_HINTS = new Map<string, string>([
@@ -448,6 +448,7 @@ async function main() {
   const leagueById = buildLeagueById(leagues);
   const approvedResultByMatchId = new Map(results.filter(result => result.status === 'approved').map(result => [result.matchId, result]));
   const updatedMatches = matches.map(match => ({ ...match }));
+  const updatedMatchesById = new Map(updatedMatches.map(match => [match.id, match]));
   const appendedResults: ExistingResult[] = [];
   const reviewRows: ReviewRecord[] = [];
   const perLeagueSummary = new Map<string, { rowsInSource: number; appendedOfficialResults: number; skippedAlreadyApproved: number; reviewRows: number }>();
@@ -535,8 +536,13 @@ async function main() {
 
     const normalizedToken = token ?? null;
     const approvedMatch = resolvedMatch ? approvedResultByMatchId.get(resolvedMatch.id) : undefined;
+    const updatedMatch = resolvedMatch ? updatedMatchesById.get(resolvedMatch.id) : undefined;
 
     if (approvedMatch) {
+      if (updatedMatch) {
+        updatedMatch.status = 'approved';
+        updatedMatch.resultId = approvedMatch.id;
+      }
       skippedAlreadyApproved += 1;
       if (resolvedLeagueId) {
         getLeagueSummary(resolvedLeagueId).skippedAlreadyApproved += 1;
@@ -578,8 +584,10 @@ async function main() {
 
     appendedResults.push(officialResult);
     results.push(officialResult);
-    resolvedMatch.status = 'approved';
-    resolvedMatch.resultId = officialResult.id;
+    if (updatedMatch) {
+      updatedMatch.status = 'approved';
+      updatedMatch.resultId = officialResult.id;
+    }
 
     if (resolvedLeagueId) {
       getLeagueSummary(resolvedLeagueId).appendedOfficialResults += 1;

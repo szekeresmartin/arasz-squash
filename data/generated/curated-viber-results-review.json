@@ -1,15 +1,1 @@
-[
-  {
-    "sectionTitle": "B liga",
-    "matchRaw": "Kovács László – Czupor Attila",
-    "resultRaw": "0–5",
-    "normalizedToken": "0/5",
-    "resolvedLeagueId": "league-b",
-    "resolvedPlayer1Id": "player-league-b-8-kov-cs-l-szl",
-    "status": "needs_review",
-    "issues": [
-      "unresolved_player: Czupor Attila",
-      "no_matching_match"
-    ]
-  }
-]
+[]

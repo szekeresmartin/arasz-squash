@@ -1,48 +1,48 @@
 {
   "sourceFile": "data/raw/viber-curated-results.txt",
-  "importedAt": "2026-06-19T20:18:24.103Z",
+  "importedAt": "2026-06-19T20:23:26.220Z",
   "totalRows": 25,
   "parsedRows": 25,
-  "appendedOfficialResults": 13,
-  "skippedAlreadyApproved": 11,
-  "reviewRows": 1,
-  "unresolvedPlayers": 1,
-  "unresolvedMatches": 1,
+  "appendedOfficialResults": 1,
+  "skippedAlreadyApproved": 24,
+  "reviewRows": 0,
+  "unresolvedPlayers": 0,
+  "unresolvedMatches": 0,
   "invalidTokens": 0,
   "perLeagueSummary": [
     {
       "leagueId": "league-a",
       "rowsInSource": 2,
-      "appendedOfficialResults": 2,
-      "skippedAlreadyApproved": 0,
+      "appendedOfficialResults": 0,
+      "skippedAlreadyApproved": 2,
       "reviewRows": 0
     },
     {
       "leagueId": "league-b",
       "rowsInSource": 3,
-      "appendedOfficialResults": 2,
-      "skippedAlreadyApproved": 0,
-      "reviewRows": 1
+      "appendedOfficialResults": 1,
+      "skippedAlreadyApproved": 2,
+      "reviewRows": 0
     },
     {
       "leagueId": "league-c",
       "rowsInSource": 1,
-      "appendedOfficialResults": 1,
-      "skippedAlreadyApproved": 0,
+      "appendedOfficialResults": 0,
+      "skippedAlreadyApproved": 1,
       "reviewRows": 0
     },
     {
       "leagueId": "league-d",
       "rowsInSource": 6,
-      "appendedOfficialResults": 3,
-      "skippedAlreadyApproved": 3,
+      "appendedOfficialResults": 0,
+      "skippedAlreadyApproved": 6,
       "reviewRows": 0
     },
     {
       "leagueId": "league-e",
       "rowsInSource": 13,
-      "appendedOfficialResults": 5,
-      "skippedAlreadyApproved": 8,
+      "appendedOfficialResults": 0,
+      "skippedAlreadyApproved": 13,
       "reviewRows": 0
     }
   ]

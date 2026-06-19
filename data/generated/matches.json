@@ -441,7 +441,8 @@
     "player1Id": "player-league-b-6-czupor-andr-s",
     "player2Id": "player-league-b-8-kov-cs-l-szl",
     "sourceCell": "I19",
-    "status": "scheduled"
+    "status": "approved",
+    "resultId": "result-league-b-6-8-czupor-andr-s-kov-cs-l-szl"
   },
   {
     "id": "match-league-b-7-8-varga-lorena-kov-cs-l-szl",
