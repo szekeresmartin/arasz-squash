@@ -6,11 +6,12 @@ import PublicLeagues from './components/PublicLeagues';
 import Rules from './components/Rules';
 import AdminPanel from './components/AdminPanel';
 import SponsorBar from './components/SponsorBar';
-import { Player, League, Match, Sponsor, MatchScore } from './types';
+import { Player, League, Match, Sponsor, MatchScore, Result } from './types';
 import {
   DEFAULT_PLAYERS,
   DEFAULT_LEAGUES,
   DEFAULT_MATCHES,
+  DEFAULT_RESULTS,
   DEFAULT_SPONSORS,
   getLeagueBySlug,
   getLeagueSlug,
@@ -21,58 +22,11 @@ export default function App() {
   // ----------------------------------------------------
   // RESZONZÍV PERSISZTENCIA (REACTIVE STORAGE)
   // ----------------------------------------------------
-  const [players, setPlayers] = useState<Player[]>(() => {
-    try {
-      const stored = localStorage.getItem('sq_players');
-      return stored ? JSON.parse(stored) : DEFAULT_PLAYERS;
-    } catch {
-      return DEFAULT_PLAYERS;
-    }
-  });
-
-  const [leagues, setLeagues] = useState<League[]>(() => {
-    try {
-      const stored = localStorage.getItem('sq_leagues');
-      return stored ? JSON.parse(stored) : DEFAULT_LEAGUES;
-    } catch {
-      return DEFAULT_LEAGUES;
-    }
-  });
-
-  const [matches, setMatches] = useState<Match[]>(() => {
-    try {
-      const stored = localStorage.getItem('sq_matches');
-      return stored ? JSON.parse(stored) : DEFAULT_MATCHES;
-    } catch {
-      return DEFAULT_MATCHES;
-    }
-  });
-
-  const [sponsors, setSponsors] = useState<Sponsor[]>(() => {
-    try {
-      const stored = localStorage.getItem('sq_sponsors');
-      return stored ? JSON.parse(stored) : DEFAULT_SPONSORS;
-    } catch {
-      return DEFAULT_SPONSORS;
-    }
-  });
-
-  // Háttér mentések localStorage-ba ha az állapotok módosulnak
-  useEffect(() => {
-    localStorage.setItem('sq_players', JSON.stringify(players));
-  }, [players]);
-
-  useEffect(() => {
-    localStorage.setItem('sq_leagues', JSON.stringify(leagues));
-  }, [leagues]);
-
-  useEffect(() => {
-    localStorage.setItem('sq_matches', JSON.stringify(matches));
-  }, [matches]);
-
-  useEffect(() => {
-    localStorage.setItem('sq_sponsors', JSON.stringify(sponsors));
-  }, [sponsors]);
+  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
+  const [leagues, setLeagues] = useState<League[]>(DEFAULT_LEAGUES);
+  const [matches, setMatches] = useState<Match[]>(DEFAULT_MATCHES);
+  const [results] = useState<Result[]>(DEFAULT_RESULTS);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(DEFAULT_SPONSORS);
 
   // ----------------------------------------------------
   // NAVIGÁCIÓS ÁLLAPOTOK & ÚTVONALAK (ROUTING)
@@ -210,19 +164,6 @@ export default function App() {
     setMatches(prev => [...prev, ...newMatches]);
   };
 
-  // Eredmény beküldése
-  const handleSubmitResult = (newSubmission: Match) => {
-    setMatches(prev => {
-      // Ha már van felvéve tervezett meccsként kártya az adatbázisban, lecseréljük a beküldöttre,
-      // így megmarad a pozíciója, különben hozzáfűzzük.
-      const matchExists = prev.some(m => m.id === newSubmission.id);
-      if (matchExists) {
-        return prev.map(m => m.id === newSubmission.id ? newSubmission : m);
-      }
-      return [newSubmission, ...prev];
-    });
-  };
-
   // Beküldött meccs jóváhagyása
   const handleApproveMatch = (matchId: string, finalScoreOverride?: MatchScore) => {
     setMatches(prev => prev.map(m => {
@@ -286,15 +227,15 @@ export default function App() {
 
         {currentView === 'leagues' && (
           <PublicLeagues
-            players={players}
-            leagues={leagues}
-            matches={matches}
-            setView={handleSetView}
-            selectedLeagueId={selectedLeagueId}
-            initialSubTab={selectedSubTab}
-            onSubmitResult={handleSubmitResult}
-          />
-        )}
+          players={players}
+          leagues={leagues}
+          matches={matches}
+          results={results}
+          setView={handleSetView}
+          selectedLeagueId={selectedLeagueId}
+          initialSubTab={selectedSubTab}
+        />
+      )}
 
         {currentView === 'rules' && (
           <Rules setView={handleSetView} />

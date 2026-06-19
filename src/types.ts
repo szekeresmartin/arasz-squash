@@ -1,9 +1,13 @@
 export interface Player {
   id: string;
   name: string;
+  leagueId?: string;
+  order?: number;
+  active?: boolean;
+  sourceSheetName?: string;
   phone?: string;
   email?: string;
-  joinDate: string;
+  joinDate?: string;
 }
 
 export type MatchStatus = 'Tervezett' | 'Beküldve' | 'Jóváhagyva' | 'Elutasítva';
@@ -25,7 +29,7 @@ export interface Match {
   round: number; // Forduló száma
   player1Id: string;
   player2Id: string;
-  date: string;
+  date?: string;
   court?: string; // Pálya vagy Helyszínpl. "1-es pálya"
   status: MatchStatus;
   submittedScore?: MatchScore;
@@ -33,6 +37,9 @@ export interface Match {
   submitterContact?: string;
   comment?: string;
   submittedAt?: string;
+  sourceCell?: string;
+  reverseSourceCell?: string;
+  resultId?: string;
 }
 
 export interface League {
@@ -54,6 +61,25 @@ export interface Standing {
   setsLost: number;
   points: number;
   form: ('W' | 'L')[];
+}
+
+export type ResultStatus = 'approved';
+export type ResultKind = 'score' | 'walkover';
+
+export interface Result {
+  id: string;
+  leagueId: string;
+  matchId: string;
+  player1Id: string;
+  player2Id: string;
+  sourceSheet: string;
+  sourceCells: string[];
+  rawHomeToken: string;
+  rawAwayToken?: string;
+  normalizedSetsWon: number;
+  normalizedSetsLost: number;
+  kind: ResultKind;
+  status: ResultStatus;
 }
 
 export interface Sponsor {

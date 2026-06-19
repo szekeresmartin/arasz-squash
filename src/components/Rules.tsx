@@ -44,7 +44,7 @@ export default function Rules({ setView }: RulesProps) {
               • A felek önállóan egyeztetnek időpontot a mérkőzésre, és lefoglalják a pályát az <span className="font-semibold text-gray-900">Arasz Squash Clubban</span>.
             </p>
             <p>
-              • A mérkőzések lejátszására a forduló végéig van lehetőség. Amennyiben egy meccset nem játszanak le, az adminisztráció jogosult dönteni a pontokról.
+              • A mérkőzések lejátszására a forduló végéig van lehetőség. Amennyiben egy meccset nem játszanak le, a szervezők jogosultak dönteni a pontokról.
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function Rules({ setView }: RulesProps) {
               • Az eredményeket a lejátszást követő <span className="font-semibold text-gray-950">24 órán belül</span> fel kell tölteni.
             </p>
             <p>
-              • A beküldött adatok (pontos szettek) adminisztrátori áttekintés és jóváhagyás után válnak véglegessé a ranglistákon.
+              • A beküldött adatok (pontos szettek) ellenőrzés után válnak véglegessé a ranglistákon.
             </p>
           </div>
         </div>

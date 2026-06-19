@@ -51,7 +51,7 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
         </div>
         
         <p className="text-center text-xs text-gray-400 mt-8 font-mono">
-          Szeretne Ön is csatlakozni szponzorként? Írjon nekünk az admin@araszontodesquash.hu címen!
+          Szeretne Ön is csatlakozni szponzorként? Keressen minket a klub hivatalos csatornáin.
         </p>
       </div>
     </section>

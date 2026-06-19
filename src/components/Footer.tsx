@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Mail, MapPin } from 'lucide-react';
+import { Trophy, MapPin, FileText } from 'lucide-react';
 
 interface FooterProps {
   setView: (view: 'home' | 'leagues' | 'rules', extra?: { leagueId?: string; subTab?: string }) => void;
@@ -30,8 +30,8 @@ export default function Footer({ setView }: FooterProps) {
                 <span>Arasz Squash Club, 8000 Székesfehérvár, Ady u. 12.</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-brand-red" />
-                <span>info@araszontodesquash.hu</span>
+                <FileText className="w-4 h-4 text-brand-red" />
+                <span>Publikus felület importált ligaadatokkal</span>
               </div>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function Footer({ setView }: FooterProps) {
           <div className="space-y-4">
             <h4 className="text-sm font-mono font-bold tracking-wider uppercase text-white">Hasznos Tudnivalók</h4>
             <p className="text-xs text-gray-400 leading-relaxed font-sans">
-              Minden bajnokság fülénél közvetlenül rögzíthető az eredmény. Az adatok adminisztrátori jóváhagyás után válnak hivatalossá és frissítik a tabellát.
+              A tabella az approved import eredményekből számolódik, a sorsolás pedig a generált meccslistát követi.
             </p>
           </div>
 

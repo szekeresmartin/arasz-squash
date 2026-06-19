@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Player, League, Match, SetScore, MatchScore } from '../types';
 import { Trophy, HelpCircle, Send, CheckCircle2, AlertCircle, Plus, Info, Sparkles } from 'lucide-react';
+import { getLeagueClassLabel } from '../data';
 
 interface SubmitResultProps {
   players: Player[];
   leagues: League[];
   matches: Match[];
-  onSubmitResult: (newMatchSubmission: Match) => void;
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   preselectedLeagueId?: string;
 }
 
-export default function SubmitResult({ players, leagues, matches, onSubmitResult, setView, preselectedLeagueId }: SubmitResultProps) {
+export default function SubmitResult({ players, leagues, matches, setView, preselectedLeagueId }: SubmitResultProps) {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>(preselectedLeagueId || '');
   const [selectedMatchId, setSelectedMatchId] = useState<string>('custom');
 
@@ -42,7 +42,6 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
 
   // Beküldő adatai
   const [submitterName, setSubmitterName] = useState<string>('');
-  const [submitterContact, setSubmitterContact] = useState<string>('');
   const [comment, setComment] = useState<string>('');
 
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
@@ -145,32 +144,6 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
       return;
     }
 
-    // Létrehozzuk a beküldött mérkőzés entitást
-    const newSubmission: Match = {
-      id: selectedMatchId !== 'custom' ? selectedMatchId : `m_sub_${Date.now()}`,
-      leagueId: selectedLeagueId,
-      round: selectedMatchId !== 'custom' 
-        ? (matches.find(m => m.id === selectedMatchId)?.round || 1)
-        : 1, // Ha egyedi, default 1
-      player1Id,
-      player2Id,
-      date: new Date().toISOString().split('T')[0], // Mai nap
-      court: selectedMatchId !== 'custom' 
-        ? (matches.find(m => m.id === selectedMatchId)?.court || '1-es pálya')
-        : '1-es pálya',
-      status: 'Beküldve', // Beküldve státuszt kap
-      submittedScore: {
-        player1Sets: p1Sets,
-        player2Sets: p2Sets,
-        sets: setsArray
-      },
-      submitterName,
-      submitterContact,
-      comment,
-      submittedAt: new Date().toISOString()
-    };
-
-    onSubmitResult(newSubmission);
     setIsSuccess(true);
   };
 
@@ -185,7 +158,6 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
     setSet4P1(''); setSet4P2('');
     setSet5P1(''); setSet5P2('');
     setSubmitterName('');
-    setSubmitterContact('');
     setComment('');
     setIsSuccess(false);
     setErrorMsg(null);
@@ -201,7 +173,7 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
         
         <h2 className="font-display font-extrabold text-2xl text-gray-950">Eredmény sikeresen beküldve!</h2>
         <p className="text-sm text-gray-500 mt-2 font-sans px-4">
-          A mérkőzés rögzítésre került. Az adatok ellenőrzés és jóváhagyás után jelennek meg a hivatalos tabellán.
+          A demo űrlap kitöltése sikeres volt, de a publikus felület jelenleg nem menti el véglegesen az adatokat.
         </p>
 
         {/* Eredmény összefoglaló kártya */}
@@ -219,7 +191,7 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
               {p1Sets} : {p2Sets}
             </div>
           </div>
-          <p className="text-xs text-gray-400 italic">"Az eredmény beküldve, admin jóváhagyásra vár."</p>
+          <p className="text-xs text-gray-400 italic">"A demo űrlap nem ír vissza véglegesen az adatok közé."</p>
         </div>
 
         <div className="space-y-3">
@@ -250,7 +222,7 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
         </span>
         <h2 className="text-3xl font-display font-extrabold text-gray-900">Eredmény Beküldése</h2>
         <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Fallabda mérkőzés lezárása. Az adatok beküldését követően az admin jóváhagyja az eredményt és a pontok frissülnek.
+          Fallabda mérkőzés lezárása. Ez a publikus űrlap csak kipróbálható, a beküldés nem módosítja véglegesen az adatokat.
         </p>
       </div>
 
@@ -275,11 +247,7 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
             <div className="w-full bg-red-50/50 border border-brand-red/30 rounded-xl px-4 py-3.5 text-sm font-bold text-brand-red flex justify-between items-center">
               <span>
                 {leagues.find(l => l.id === selectedLeagueId)?.name} – {
-                  selectedLeagueId === 'l1' ? '1. osztály' :
-                  selectedLeagueId === 'l2' ? '2. osztály' :
-                  selectedLeagueId === 'l3' ? '3. osztály' :
-                  selectedLeagueId === 'l4' ? '4. osztály' :
-                  selectedLeagueId === 'l5' ? '5. osztály' : 'Osztály'
+                  getLeagueClassLabel(selectedLeagueId)
                 }
               </span>
               <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase px-2.5 py-1 bg-brand-red text-white rounded-md">
@@ -325,7 +293,7 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
                 <option value="custom">Egyedi mérkőzés (nincs a tervezett sorsolásban)</option>
                 {availableMatches.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.round}. forduló: {getPlayerName(m.player1Id)} vs {getPlayerName(m.player2Id)} ({m.date})
+                    {m.round}. forduló: {getPlayerName(m.player1Id)} vs {getPlayerName(m.player2Id)}{m.sourceCell ? ` • ${m.sourceCell}` : ''}
                   </option>
                 ))}
               </select>
@@ -562,33 +530,20 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
             {/* 5. BEKÜLDŐ ADATAI */}
             <div className="space-y-4 pt-4 border-t border-gray-100">
               <label className="block text-xs font-mono font-bold uppercase text-gray-500 tracking-wider">
-                4. Beküldő adatai
+                4. Beküldő neve
               </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <span className="text-xs text-gray-500 font-semibold">Beküldő Neve *</span>
-                  <input
-                    type="text"
-                    placeholder="Pl. Szabó Péter"
-                    value={submitterName}
-                    onChange={(e) => setSubmitterName(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm"
-                    required
-                    id="input-submitter-name"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-xs text-gray-500 font-semibold">E-mail vagy Telefonszám</span>
-                  <input
-                    type="text"
-                    placeholder="Pl. peter@gmail.com"
-                    value={submitterContact}
-                    onChange={(e) => setSubmitterContact(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm"
-                    id="input-submitter-contact"
-                  />
-                </div>
+              <div className="space-y-1">
+                <span className="text-xs text-gray-500 font-semibold">Beküldő Neve *</span>
+                <input
+                  type="text"
+                  placeholder="Pl. Szabó Péter"
+                  value={submitterName}
+                  onChange={(e) => setSubmitterName(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm"
+                  required
+                  id="input-submitter-name"
+                />
               </div>
 
               <div className="space-y-1">
