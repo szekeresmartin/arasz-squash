@@ -7,9 +7,13 @@ interface FooterProps {
 
 export default function Footer({ setView }: FooterProps) {
   return (
-    <footer className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t border-gray-800" id="app-footer">
+    <footer
+      className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t border-gray-800"
+      id="app-footer"
+      style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
@@ -24,10 +28,6 @@ export default function Footer({ setView }: FooterProps) {
             <p className="text-sm text-gray-400 max-w-sm font-sans">
               A megye legmodernebb, legpörgősebb amatőr fallabda bajnoksága. Csatlakozz hozzánk, játssz sportszerűen és küzdj meg a bajnoki címért!
             </p>
-            <div className="flex items-center gap-2 pt-2 text-xs text-gray-400 font-mono">
-              <FileText className="w-4 h-4 text-brand-red" />
-              <span>Publikus felület importált ligaadatokkal</span>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -59,14 +59,6 @@ export default function Footer({ setView }: FooterProps) {
                 </button>
               </li>
             </ul>
-          </div>
-
-          {/* Useful/Regulatory */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-mono font-bold tracking-wider uppercase text-white">Publikus állapot</h4>
-            <p className="text-xs text-gray-400 leading-relaxed font-sans">
-              A tabella az approved import eredményekből számolódik, a sorsolás pedig a generált meccslistát követi. A publikus eredménybeküldő jelenleg csak demó, nem írja vissza véglegesen az adatokat.
-            </p>
           </div>
 
         </div>

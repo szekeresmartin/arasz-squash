@@ -9,7 +9,7 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
   const activeSponsors = sponsors.filter(s => s.isActive);
 
   return (
-    <section className="bg-gray-50 border-y border-gray-100 py-12 px-6" id="partners">
+    <section className="bg-gradient-to-b from-gray-50 to-white border-y border-gray-100 py-12 sm:py-14 px-4 sm:px-6" id="partners">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <p className="text-xs font-semibold tracking-wider text-brand-red uppercase">Együttműködő Feleink</p>
@@ -17,33 +17,33 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
           <div className="h-1 w-12 bg-brand-red mx-auto mt-3 rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 items-stretch justify-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 md:gap-6 items-center">
           {activeSponsors.map((sponsor) => (
             <a
               key={sponsor.id}
               href={sponsor.websiteUrl || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative flex items-center justify-center bg-white border border-gray-200/80 rounded-xl p-5 sm:p-6 hover:border-brand-red hover:shadow-md transition-all duration-300 overflow-hidden min-h-28"
+              className="group flex items-center justify-center rounded-2xl px-4 py-5 sm:py-6 transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red/40"
               id={`sponsor-card-${sponsor.id}`}
               aria-label={sponsor.name}
               title={sponsor.name}
             >
-              <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${sponsor.colorHex}`} />
               {sponsor.logoPath ? (
                 <img
                   src={sponsor.logoPath}
                   alt={sponsor.name}
                   loading="lazy"
-                  className="max-h-16 sm:max-h-20 w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                  className="w-auto max-w-full max-h-24 sm:max-h-28 md:max-h-32 object-contain transition-transform duration-200 group-hover:scale-[1.04]"
                 />
               ) : (
-                <div className="h-16 w-full max-w-36 rounded-lg border border-dashed border-gray-200 bg-gray-50" />
+                <div className="flex h-24 sm:h-28 md:h-32 w-full items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-xs font-mono text-gray-400">
+                  {sponsor.name}
+                </div>
               )}
             </a>
           ))}
         </div>
-        
       </div>
     </section>
   );

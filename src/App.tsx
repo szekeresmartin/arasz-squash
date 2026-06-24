@@ -190,13 +190,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light flex flex-col justify-between" id="app-wrapper">
+    <div
+      className="min-h-dvh bg-brand-light flex flex-col"
+      id="app-wrapper"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+    >
       <Header 
         currentView={currentView} 
         setView={handleSetView} 
       />
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" id="app-main">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-10 sm:pb-12" id="app-main">
         {currentView === 'home' && (
           <PublicHome 
             leagues={leagues} 

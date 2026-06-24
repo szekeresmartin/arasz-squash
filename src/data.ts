@@ -123,8 +123,9 @@ const SPONSOR_LOGOS = [
   new URL('../data/sponsors/partner_2.webp', import.meta.url).href,
   new URL('../data/sponsors/partner_3.webp', import.meta.url).href,
   new URL('../data/sponsors/partner_4.webp', import.meta.url).href,
-  new URL('../data/sponsors/martincreative_studio.png', import.meta.url).href,
+  new URL('../data/sponsors/partner_5.webp', import.meta.url).href,
   new URL('../data/sponsors/partner_6.webp', import.meta.url).href,
+  new URL('../data/sponsors/martincreative_studio.png', import.meta.url).href,
 ] as const;
 
 export const DEFAULT_LEAGUES: League[] = GENERATED_LEAGUES.map((league) => ({
@@ -181,8 +182,9 @@ export const DEFAULT_SPONSORS: Sponsor[] = [
   { id: 's2', name: 'Csodashop.hu', logoText: 'Csodashop.hu', logoPath: SPONSOR_LOGOS[1], colorHex: 'from-amber-500 to-orange-600', websiteUrl: 'https://csodashop.hu', isActive: true },
   { id: 's3', name: 'Happy Fagyi', logoText: 'Happy Fagyi 🍦', logoPath: SPONSOR_LOGOS[2], colorHex: 'from-pink-500 to-rose-400', websiteUrl: 'https://happyfagyi.hu', isActive: true },
   { id: 's4', name: 'Kovácsbusz', logoText: 'Kovácsbusz 🚌', logoPath: SPONSOR_LOGOS[3], colorHex: 'from-emerald-600 to-teal-500', websiteUrl: 'https://kovacsbusz.hu', isActive: true },
-  { id: 's5', name: 'martin creative studio', logoText: 'martin creative studio', logoPath: SPONSOR_LOGOS[4], colorHex: 'from-slate-950 to-gray-700', websiteUrl: 'https://martincreative.studio', isActive: true },
+  { id: 's5', name: 'Rolling Kft. Szombathely', logoText: 'Rolling Kft. Szombathely', logoPath: SPONSOR_LOGOS[4], colorHex: 'from-slate-700 to-slate-900', websiteUrl: 'https://rollingkft.hu', isActive: true },
   { id: 's6', name: 'West Machine Kft.', logoText: 'West Machine', logoPath: SPONSOR_LOGOS[5], colorHex: 'from-red-600 to-orange-500', websiteUrl: 'https://westmachine.hu', isActive: true },
+  { id: 's7', name: 'martin creative studio', logoText: 'martin creative studio', logoPath: SPONSOR_LOGOS[6], colorHex: 'from-slate-950 to-gray-700', websiteUrl: 'https://martincreative.studio', isActive: true },
 ];
 
 export const LEAGUE_ROUTE_META = GENERATED_LEAGUES.map((league) => ({

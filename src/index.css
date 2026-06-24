@@ -31,3 +31,15 @@
 .bg-radial-pattern {
   background-image: radial-gradient(circle at 10% 20%, rgba(0, 140, 145, 0.03) 0%, transparent 60%);
 }
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
