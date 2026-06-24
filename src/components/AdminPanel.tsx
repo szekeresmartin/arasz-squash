@@ -18,7 +18,9 @@ interface AdminPanelProps {
   onUpdateLeague: (l: League) => void;
   onAddMatches: (m: Match[]) => void;
   onApproveMatch: (matchId: string, finalScore?: MatchScore) => void;
+  onUpdateMatchSubmission: (matchId: string, finalScore: MatchScore) => void;
   onRejectMatch: (matchId: string) => void;
+  onDeleteMatch: (matchId: string) => void;
   onUpdateSponsor: (s: Sponsor) => void;
   onAddSponsor: (s: Sponsor) => void;
 }
@@ -35,7 +37,9 @@ export default function AdminPanel({
   onUpdateLeague,
   onAddMatches,
   onApproveMatch,
+  onUpdateMatchSubmission,
   onRejectMatch,
+  onDeleteMatch,
   onUpdateSponsor,
   onAddSponsor
 }: AdminPanelProps) {
@@ -44,6 +48,7 @@ export default function AdminPanel({
   const [activeAdminTab, setActiveAdminTab] = useState<string>('dashboard');
 
   const pendingSubmissions = matches.filter(m => m.status === 'Beküldve');
+  const approvedMatches = matches.filter(m => m.status === 'Jóváhagyva');
   const activeLeaguesCount = leagues.filter(l => l.isActive).length;
   const playedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
   const activePlayersCount = players.length;
@@ -967,7 +972,7 @@ export default function AdminPanel({
     }
   };
 
-  const handleSaveAndApproveEdit = (matchId: string) => {
+  const compileEditedScore = () => {
     // Összeállítjuk a szettek tömbjét
     const sets: SetScore[] = [];
     const pushSet = (p1Str: string, p2Str: string) => {
@@ -986,14 +991,31 @@ export default function AdminPanel({
 
     if (sets.length < 3) {
       alert('Hiba: Legalább 3 szett pontszámainak rögzítése kötelező!');
-      return;
+      return null;
     }
 
-    const compiledScore: MatchScore = {
+    return {
       player1Sets: editP1Sets,
       player2Sets: editP2Sets,
       sets
     };
+  };
+
+  const handleSaveEdit = (matchId: string) => {
+    const compiledScore = compileEditedScore();
+    if (!compiledScore) {
+      return;
+    }
+
+    onUpdateMatchSubmission(matchId, compiledScore);
+    setEditingSubId(null);
+  };
+
+  const handleSaveAndApproveEdit = (matchId: string) => {
+    const compiledScore = compileEditedScore();
+    if (!compiledScore) {
+      return;
+    }
 
     onApproveMatch(matchId, compiledScore);
     setEditingSubId(null);
@@ -1003,10 +1025,12 @@ export default function AdminPanel({
     <div className="space-y-6 animate-fadeIn font-sans" id="admin-approvals-view">
       <div className="bg-white p-5 rounded-xl border">
         <h3 className="font-display font-bold text-lg text-gray-900">Beküldött eredmények ellenőrzése</h3>
-        <p className="text-xs text-gray-500 mt-1">A publikusan beküldött mérkőzések listája. Jóváhagyás után a tabellák azonnal frissülnek.</p>
+        <p className="text-xs text-gray-500 mt-1">
+          A publikusan beküldött mérkőzések és a már jóváhagyott eredmények listája. Jóváhagyás után a tabellák azonnal frissülnek.
+        </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {pendingSubmissions.length === 0 ? (
           <div className="text-center bg-white border rounded-xl py-16 text-gray-400 text-sm font-sans italic flex flex-col items-center justify-center gap-3">
             <ShieldCheck className="w-12 h-12 text-emerald-500 opacity-60" />
@@ -1016,123 +1040,169 @@ export default function AdminPanel({
             </div>
           </div>
         ) : (
-          pendingSubmissions.map((match) => {
-            const leagueName = leagues.find(l => l.id === match.leagueId)?.name || 'Liga';
-            const score = match.submittedScore;
-            const isEditing = editingSubId === match.id;
+          <div className="space-y-4">
+            {pendingSubmissions.map((match) => {
+              const leagueName = leagues.find(l => l.id === match.leagueId)?.name || 'Liga';
+              const score = match.submittedScore;
+              const isEditing = editingSubId === match.id;
 
-            return (
-              <div key={match.id} className="bg-white border rounded-xl overflow-hidden shadow-xs border-amber-200">
-                
-                {/* Fejléc */}
-                <div className="bg-amber-50/50 border-b px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold bg-brand-red text-white px-2 py-0.5 rounded-sm">
-                      {leagueName}
-                    </span>
-                    <span className="text-xs font-mono font-bold text-amber-800">
-                      FÜGGŐ JÓVÁHAGYÁS
+              return (
+                <div key={match.id} className="bg-white border rounded-xl overflow-hidden shadow-xs border-amber-200">
+                  <div className="bg-amber-50/50 border-b px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold bg-brand-red text-white px-2 py-0.5 rounded-sm">
+                        {leagueName}
+                      </span>
+                      <span className="text-xs font-mono font-bold text-amber-800">FÜGGŐ JÓVÁHAGYÁS</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-gray-400">
+                      Beérkezett: {match.submittedAt ? new Date(match.submittedAt).toLocaleString('hu-HU') : 'ismeretlen időpont'}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-gray-400">
-                    Beérkezett: {match.submittedAt ? new Date(match.submittedAt).toLocaleString('hu-HU') : 'ismeretlen időpont'}
-                  </span>
+
+                  <div className="p-6 space-y-4">
+                    {isEditing ? (
+                      <div className="space-y-4 bg-gray-50 p-4 border rounded-xl animate-fadeIn">
+                        <p className="text-xs font-mono font-bold text-amber-700 uppercase">Eredmény javítása / szerkesztése</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <span className="text-xs text-gray-500 font-semibold">{getPlayerName(match.player1Id)} szettjei:</span>
+                            <input type="number" min="0" max="3" value={editP1Sets} onChange={(e) => setEditP1Sets(parseInt(e.target.value, 10) || 0)} className="bg-white border rounded px-3 py-1.5 text-xs font-mono font-bold w-full" />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-xs text-gray-500 font-semibold">{getPlayerName(match.player2Id)} szettjei:</span>
+                            <input type="number" min="0" max="3" value={editP2Sets} onChange={(e) => setEditP2Sets(parseInt(e.target.value, 10) || 0)} className="bg-white border rounded px-3 py-1.5 text-xs font-mono font-bold w-full" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 border-t pt-3">
+                          <span className="text-xs font-semibold text-gray-600 block mb-1">Szettenkénti pontok:</span>
+                          <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono text-gray-400">
+                            <span>1. szett</span><span>2. szett</span><span>3. szett</span><span>4. szett</span><span>5. szett</span>
+                          </div>
+                          <div className="grid grid-cols-5 gap-2">
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="H" value={editS1P1} onChange={e => setEditS1P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                              <input type="number" placeholder="V" value={editS1P2} onChange={e => setEditS1P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                            </div>
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="H" value={editS2P1} onChange={e => setEditS2P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                              <input type="number" placeholder="V" value={editS2P2} onChange={e => setEditS2P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                            </div>
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="H" value={editS3P1} onChange={e => setEditS3P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                              <input type="number" placeholder="V" value={editS3P2} onChange={e => setEditS3P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                            </div>
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="H" value={editS4P1} onChange={e => setEditS4P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                              <input type="number" placeholder="V" value={editS4P2} onChange={e => setEditS4P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                            </div>
+                            <div className="flex gap-1">
+                              <input type="number" placeholder="H" value={editS5P1} onChange={e => setEditS5P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                              <input type="number" placeholder="V" value={editS5P2} onChange={e => setEditS5P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                          <button type="button" onClick={() => setEditingSubId(null)} className="px-4 py-2 text-xs font-mono font-bold bg-white hover:bg-gray-100 rounded-lg text-gray-550 border">
+                            Szerkesztés mégse
+                          </button>
+                          <button type="button" onClick={() => handleSaveEdit(match.id)} className="px-4 py-2 text-xs font-mono font-bold bg-gray-900 hover:bg-black text-white rounded-lg uppercase">
+                            Mentés
+                          </button>
+                          <button type="button" onClick={() => handleSaveAndApproveEdit(match.id)} className="px-4 py-2 text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg uppercase">
+                            Mentés és Jóváhagyás
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col md:flex-row justify-between gap-6">
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-4">
+                            <div className="space-y-1">
+                              <p className="text-base font-bold text-gray-900">{getPlayerName(match.player1Id)}</p>
+                              <p className="text-base font-bold text-gray-900">{getPlayerName(match.player2Id)}</p>
+                            </div>
+                            <div className="bg-brand-red text-white text-lg font-mono font-black py-2 px-4 rounded-xl">
+                              {score ? `${score.player1Sets} : ${score.player2Sets}` : '?:?'}
+                            </div>
+                          </div>
+
+                          {score && (
+                            <div className="flex gap-1.5 pt-1">
+                              {score.sets.map((set, idx) => (
+                                <div key={idx} className="bg-gray-50 border text-[11px] font-mono h-8 w-11 flex flex-col justify-center items-center rounded-sm">
+                                  <span className={set.player1 > set.player2 ? 'text-gray-950 font-bold' : 'text-gray-400'}>{set.player1}</span>
+                                  <span className={set.player2 > set.player1 ? 'text-gray-950 font-bold' : 'text-gray-400'}>{set.player2}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="border-t pt-3 mt-3 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <p>
+                              <span className="font-semibold text-gray-600">Beküldő:</span> {match.submitterName || 'Ismeretlen'}
+                              {match.submitterContact && <span className="text-gray-400 block sm:inline sm:pl-2">({match.submitterContact})</span>}
+                            </p>
+                            {match.comment && (
+                              <p>
+                                <span className="font-semibold text-gray-600">Megjegyzés:</span> "{match.comment}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex sm:flex-row md:flex-col justify-end gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+                          <button onClick={() => onApproveMatch(match.id)} className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer" id={`approve-${match.id}`}>
+                            <CheckCircle2 className="w-4 h-4" />
+                            Jóváhagyás
+                          </button>
+                          <button onClick={() => handleStartEditSubmission(match)} className="flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-150 text-gray-700 font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider border cursor-pointer border-gray-200">
+                            <Edit3 className="w-4 h-4" />
+                            Szerkesztés
+                          </button>
+                          <button onClick={() => { if (window.confirm('Biztosan elutasítod ezt a bejelentést?')) { onRejectMatch(match.id); } }} className="flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider border border-rose-100 cursor-pointer" id={`reject-${match.id}`}>
+                            <XCircle className="w-4 h-4" />
+                            Elutasítás
+                          </button>
+                          <button onClick={() => { if (window.confirm('Biztosan törlöd ezt az eredményt?')) { onDeleteMatch(match.id); } }} className="flex items-center justify-center gap-1.5 bg-gray-900 hover:bg-black text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer" id={`delete-${match.id}`}>
+                            <Trash2 className="w-4 h-4" />
+                            Törlés
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
 
-                {/* Tartalom */}
-                <div className="p-6 space-y-4">
-                  {isEditing ? (
-                    // SZERKESZTÉSI MÓD
-                    <div className="space-y-4 bg-gray-50 p-4 border rounded-xl animate-fadeIn">
-                      <p className="text-xs font-mono font-bold text-amber-700 uppercase">Eredmény javítása / szerkesztése</p>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <span className="text-xs text-gray-500 font-semibold">{getPlayerName(match.player1Id)} szettjei:</span>
-                          <input
-                            type="number"
-                            min="0"
-                            max="3"
-                            value={editP1Sets}
-                            onChange={(e) => setEditP1Sets(parseInt(e.target.value, 11) || 0)}
-                            className="bg-white border rounded px-3 py-1.5 text-xs font-mono font-bold w-full"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs text-gray-500 font-semibold">{getPlayerName(match.player2Id)} szettjei:</span>
-                          <input
-                            type="number"
-                            min="0"
-                            max="3"
-                            value={editP2Sets}
-                            onChange={(e) => setEditP2Sets(parseInt(e.target.value, 11) || 0)}
-                            className="bg-white border rounded px-3 py-1.5 text-xs font-mono font-bold w-full"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Szettenként */}
-                      <div className="space-y-2 border-t pt-3">
-                        <span className="text-xs font-semibold text-gray-600 block mb-1">Szettenkénti pontok:</span>
-                        <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono text-gray-400">
-                          <span>1. szett</span>
-                          <span>2. szett</span>
-                          <span>3. szett</span>
-                          <span>4. szett</span>
-                          <span>5. szett</span>
-                        </div>
-                        <div className="grid grid-cols-5 gap-2">
-                          {/* Szett 1 */}
-                          <div className="flex gap-1">
-                            <input type="number" placeholder="H" value={editS1P1} onChange={e => setEditS1P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            <input type="number" placeholder="V" value={editS1P2} onChange={e => setEditS1P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                          </div>
-                          {/* Szett 2 */}
-                          <div className="flex gap-1">
-                            <input type="number" placeholder="H" value={editS2P1} onChange={e => setEditS2P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            <input type="number" placeholder="V" value={editS2P2} onChange={e => setEditS2P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                          </div>
-                          {/* Szett 3 */}
-                          <div className="flex gap-1">
-                            <input type="number" placeholder="H" value={editS3P1} onChange={e => setEditS3P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            <input type="number" placeholder="V" value={editS3P2} onChange={e => setEditS3P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                          </div>
-                          {/* Szett 4 */}
-                          <div className="flex gap-1">
-                            <input type="number" placeholder="H" value={editS4P1} onChange={e => setEditS4P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            <input type="number" placeholder="V" value={editS4P2} onChange={e => setEditS4P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                          </div>
-                          {/* Szett 5 */}
-                          <div className="flex gap-1">
-                            <input type="number" placeholder="H" value={editS5P1} onChange={e => setEditS5P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            <input type="number" placeholder="V" value={editS5P2} onChange={e => setEditS5P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setEditingSubId(null)}
-                          className="px-4 py-2 text-xs font-mono font-bold bg-white hover:bg-gray-100 rounded-lg text-gray-550 border"
-                        >
-                          Szerkesztés mégse
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveAndApproveEdit(match.id)}
-                          className="px-4 py-2 text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg uppercase"
-                        >
-                          Mentés és Jóváhagyás
-                        </button>
-                      </div>
+        {approvedMatches.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-display font-bold text-lg text-gray-900">Jóváhagyott eredmények</h4>
+              <span className="text-xs font-mono text-gray-400">{approvedMatches.length} db</span>
+            </div>
+            {approvedMatches.map((match) => {
+              const leagueName = leagues.find(l => l.id === match.leagueId)?.name || 'Liga';
+              const score = match.submittedScore;
+              return (
+                <div key={match.id} className="bg-white border rounded-xl overflow-hidden shadow-xs">
+                  <div className="bg-gray-50 border-b px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold bg-brand-red text-white px-2 py-0.5 rounded-sm">{leagueName}</span>
+                      <span className="text-xs font-mono font-bold text-emerald-700">JÓVÁHAGYVA</span>
                     </div>
-                  ) : (
-                    // RENDES MEGJELENÍTÉSI MÓD
+                    <span className="text-[10px] font-mono text-gray-400">
+                      Beérkezett: {match.submittedAt ? new Date(match.submittedAt).toLocaleString('hu-HU') : 'ismeretlen időpont'}
+                    </span>
+                  </div>
+                  <div className="p-6">
                     <div className="flex flex-col md:flex-row justify-between gap-6">
                       <div className="space-y-2 flex-1">
-                        
-                        {/* Játékosok és pontszám */}
                         <div className="flex items-center gap-4">
                           <div className="space-y-1">
                             <p className="text-base font-bold text-gray-900">{getPlayerName(match.player1Id)}</p>
@@ -1142,24 +1212,9 @@ export default function AdminPanel({
                             {score ? `${score.player1Sets} : ${score.player2Sets}` : '?:?'}
                           </div>
                         </div>
-
-                        {/* Szett lebontás */}
-                        {score && (
-                          <div className="flex gap-1.5 pt-1">
-                            {score.sets.map((set, idx) => (
-                              <div key={idx} className="bg-gray-50 border text-[11px] font-mono h-8 w-11 flex flex-col justify-center items-center rounded-sm">
-                                <span className={set.player1 > set.player2 ? 'text-gray-950 font-bold' : 'text-gray-400'}>{set.player1}</span>
-                                <span className={set.player2 > set.player1 ? 'text-gray-950 font-bold' : 'text-gray-400'}>{set.player2}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Beküldő adatai */}
                         <div className="border-t pt-3 mt-3 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <p>
                             <span className="font-semibold text-gray-600">Beküldő:</span> {match.submitterName || 'Ismeretlen'}
-                            {match.submitterContact && <span className="text-gray-400 block sm:inline sm:pl-2">({match.submitterContact})</span>}
                           </p>
                           {match.comment && (
                             <p>
@@ -1168,44 +1223,26 @@ export default function AdminPanel({
                           )}
                         </div>
                       </div>
-
-                      {/* Végső jóváhagyási műveletgombok */}
-                      <div className="flex sm:flex-row md:flex-col justify-end gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
-                        <button
-                          onClick={() => onApproveMatch(match.id)}
-                          className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer"
-                          id={`approve-${match.id}`}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                          Jóváhagyás
-                        </button>
-                        <button
-                          onClick={() => handleStartEditSubmission(match)}
-                          className="flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-150 text-gray-700 font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider border cursor-pointer border-gray-200"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                          Szerkesztés
-                        </button>
+                      <div className="flex justify-end pt-4 md:pt-0">
                         <button
                           onClick={() => {
-                            if (window.confirm('Biztosan elutasítod ezt a bejelentést?')) {
-                              onRejectMatch(match.id);
+                            if (window.confirm('Biztosan törlöd ezt az eredményt? Ez visszavonja a hivatalos állapotot is.')) {
+                              onDeleteMatch(match.id);
                             }
                           }}
-                          className="flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider border border-rose-100 cursor-pointer"
-                          id={`reject-${match.id}`}
+                          className="flex items-center justify-center gap-1.5 bg-gray-900 hover:bg-black text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer"
+                          id={`delete-approved-${match.id}`}
                         >
-                          <XCircle className="w-4 h-4" />
-                          Elutasítás
+                          <Trash2 className="w-4 h-4" />
+                          Törlés
                         </button>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
-
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

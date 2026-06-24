@@ -9,6 +9,18 @@ interface PublicLeaguesProps {
   leagues: League[];
   matches: Match[];
   results: Result[];
+  onSubmitResult: (payload: {
+    leagueId: string;
+    player1Id: string;
+    player2Id: string;
+    finalScore: {
+      player1Sets: number;
+      player2Sets: number;
+      sets: Array<{ player1: number; player2: number }>;
+    };
+    submitterName: string;
+    comment?: string;
+  }) => void;
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   selectedLeagueId: string | null;
   initialSubTab?: string;
@@ -28,6 +40,7 @@ export default function PublicLeagues({
   leagues,
   matches,
   results,
+  onSubmitResult,
   setView,
   selectedLeagueId,
   initialSubTab = 'tabella',
@@ -57,7 +70,9 @@ export default function PublicLeagues({
     ? players.filter(player => player.leagueId === currentLeague.id)
     : [];
 
-  const currentLeagueMatches = currentLeague ? matches.filter(match => match.leagueId === currentLeague.id) : [];
+  const currentLeagueMatches = currentLeague
+    ? matches.filter(match => match.leagueId === currentLeague.id && match.status !== 'Beküldve')
+    : [];
   const currentLeagueResults = currentLeague ? results.filter(result => result.leagueId === currentLeague.id) : [];
   const approvedLeagueResults = currentLeagueResults.filter(result => result.status === 'approved');
 
@@ -69,6 +84,9 @@ export default function PublicLeagues({
 
   const roundsMap = new Map<number, Match[]>();
   currentLeagueMatches.forEach((match) => {
+    if (match.round <= 0) {
+      return;
+    }
     const roundMatches = roundsMap.get(match.round) ?? [];
     roundMatches.push(match);
     roundsMap.set(match.round, roundMatches);
@@ -359,7 +377,7 @@ export default function PublicLeagues({
                                 {isApproved ? 'Jóváhagyva' : 'Tervezett'}
                               </span>
                               
-                              {match.round && (
+                              {match.round > 0 && (
                                 <span className="text-xs text-gray-400 font-mono flex items-center gap-1">
                                   <Calendar className="w-3.5 h-3.5" />
                                   {match.round}. forduló
@@ -473,7 +491,7 @@ export default function PublicLeagues({
                     <div key={result.id} className="p-4 bg-gray-50/60 hover:bg-gray-50 border border-gray-150 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all">
                       <div>
                         <span className="text-[10px] font-mono text-gray-400 block mb-1">
-                          {match ? `${match.round}. forduló` : 'Eredmény'} • {result.sourceSheet}
+                          {match && match.round > 0 ? `${match.round}. forduló` : 'Eredmény'} • {result.sourceSheet}
                         </span>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -601,6 +619,7 @@ export default function PublicLeagues({
             players={players}
             leagues={leagues}
             matches={matches}
+            onSubmitResult={onSubmitResult}
             setView={setView}
             preselectedLeagueId={currentLeague.id}
           />

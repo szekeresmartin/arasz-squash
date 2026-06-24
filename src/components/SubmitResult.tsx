@@ -1,35 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Player, League, Match, SetScore, MatchScore } from '../types';
-import { Send, CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AlertCircle, CheckCircle2, Info, Send } from 'lucide-react';
+import { League, Match, MatchScore, Player } from '../types';
 import { getLeagueClassLabel } from '../data';
 
 interface SubmitResultProps {
   players: Player[];
   leagues: League[];
   matches: Match[];
+  onSubmitResult: (payload: {
+    leagueId: string;
+    player1Id: string;
+    player2Id: string;
+    finalScore: MatchScore;
+    submitterName: string;
+    comment?: string;
+  }) => void;
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   preselectedLeagueId?: string;
 }
 
-type EditableSetScore = {
-  player1: string;
-  player2: string;
-};
+const FINAL_SCORE_OPTIONS = ['5:0', '4:1', '3:2', '2:3', '1:4', '0:5'] as const;
 
-const INITIAL_SET_SCORES: EditableSetScore[] = [
-  { player1: '', player2: '' },
-  { player1: '', player2: '' },
-  { player1: '', player2: '' },
-  { player1: '', player2: '' },
-  { player1: '', player2: '' },
-];
-
-export default function SubmitResult({ players, leagues, matches, setView, preselectedLeagueId }: SubmitResultProps) {
+export default function SubmitResult({ players, leagues, matches, onSubmitResult, setView, preselectedLeagueId }: SubmitResultProps) {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>(preselectedLeagueId || '');
-  const [selectedMatchId, setSelectedMatchId] = useState<string>('custom');
   const [player1Id, setPlayer1Id] = useState<string>('');
   const [player2Id, setPlayer2Id] = useState<string>('');
-  const [setScores, setSetScores] = useState<EditableSetScore[]>(INITIAL_SET_SCORES);
+  const [finalScore, setFinalScore] = useState<string>('');
   const [submitterName, setSubmitterName] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
@@ -38,69 +34,36 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
   useEffect(() => {
     if (preselectedLeagueId) {
       setSelectedLeagueId(preselectedLeagueId);
-      setSelectedMatchId('custom');
       setPlayer1Id('');
       setPlayer2Id('');
-      setSetScores(INITIAL_SET_SCORES);
+      setFinalScore('');
       setErrorMsg(null);
     }
   }, [preselectedLeagueId]);
 
   const activeLeague = leagues.find(l => l.id === selectedLeagueId);
-  const availableMatches = selectedLeagueId 
-    ? matches.filter(m => m.leagueId === selectedLeagueId && m.status === 'Tervezett')
-    : [];
   const availablePlayers = activeLeague
     ? players.filter(p => activeLeague.playerIds.includes(p.id))
     : players;
   const playerNameById = new Map(players.map(player => [player.id, player.name]));
-
-  const handleMatchChange = (matchId: string) => {
-    setSelectedMatchId(matchId);
-    if (matchId !== 'custom') {
-      const selectedMatch = matches.find(m => m.id === matchId);
-      if (selectedMatch) {
-        setPlayer1Id(selectedMatch.player1Id);
-        setPlayer2Id(selectedMatch.player2Id);
-      }
-    } else {
-      setPlayer1Id('');
-      setPlayer2Id('');
-    }
-    setErrorMsg(null);
-  };
-
-  const updateSetScore = (index: number, playerKey: 'player1' | 'player2', value: string) => {
-    setSetScores(prev =>
-      prev.map((setScore, setIndex) =>
-        setIndex === index ? { ...setScore, [playerKey]: value } : setScore,
-      ),
-    );
-  };
+  const currentLeagueMatches = selectedLeagueId
+    ? matches.filter(match => match.leagueId === selectedLeagueId)
+    : [];
 
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Nincs kiválasztva';
 
-  const calculateWinnerAndSets = (): { p1Sets: number, p2Sets: number, setsArray: SetScore[] } => {
-    let p1Sets = 0;
-    let p2Sets = 0;
-    const setsArray: SetScore[] = [];
+  const getParsedScore = () => {
+    const [player1SetsRaw, player2SetsRaw] = finalScore.split(':');
+    const player1Sets = Number(player1SetsRaw);
+    const player2Sets = Number(player2SetsRaw);
 
-    for (const setScore of setScores) {
-      const p1 = parseInt(setScore.player1, 10);
-      const p2 = parseInt(setScore.player2, 10);
-      if (!isNaN(p1) && !isNaN(p2)) {
-        setsArray.push({ player1: p1, player2: p2 });
-        if (p1 > p2) p1Sets++;
-        if (p2 > p1) p2Sets++;
-      }
+    if (Number.isNaN(player1Sets) || Number.isNaN(player2Sets)) {
+      return null;
     }
 
-    return { p1Sets, p2Sets, setsArray };
+    return { player1Sets, player2Sets };
   };
 
-  const { p1Sets, p2Sets, setsArray } = calculateWinnerAndSets();
-
-  // Validálás és beküldés
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -117,20 +80,26 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
       setErrorMsg('Egy játékos nem játszhat önmaga ellen!');
       return;
     }
-    if (setsArray.length < 3) {
-      setErrorMsg('A fallabda mérkőzéseken legalább 3 szett lejátszása és megadása kötelező!');
+    const samePairMatch = currentLeagueMatches.find(match => {
+      const sameOrder = match.player1Id === player1Id && match.player2Id === player2Id;
+      const reverseOrder = match.player1Id === player2Id && match.player2Id === player1Id;
+      return sameOrder || reverseOrder;
+    });
+    if (samePairMatch?.status === 'Jóváhagyva' || samePairMatch?.status === 'Beküldve') {
+      setErrorMsg('Ehhez a pároshoz már van beküldött vagy jóváhagyott eredmény.');
       return;
     }
-    if (p1Sets < 3 && p2Sets < 3) {
-      setErrorMsg('A mérkőzés megnyeréséhez az egyik játékosnak legalább 3 szettet kell nyernie!');
+    if (!finalScore) {
+      setErrorMsg('Kérjük, válaszd ki a végeredményt!');
       return;
     }
-    if (p1Sets === 3 && p2Sets === 3) {
-      setErrorMsg('Hibás szettarány! Squash mérkőzésen nem lehet mindkét félnek 3 nyert szettje!');
+    if (!FINAL_SCORE_OPTIONS.includes(finalScore as typeof FINAL_SCORE_OPTIONS[number])) {
+      setErrorMsg('Kérjük, válassz egy érvényes végeredményt!');
       return;
     }
-    if (p1Sets > 3 || p2Sets > 3) {
-      setErrorMsg('Hibás szettarány! Senkinek sem lehet 3-nál több nyert szettje (Best of 5).');
+    const parsedScore = getParsedScore();
+    if (!parsedScore || parsedScore.player1Sets + parsedScore.player2Sets !== 5) {
+      setErrorMsg('A végeredménynek 5 lejátszott szettet kell mutatnia.');
       return;
     }
     if (!submitterName.trim()) {
@@ -138,50 +107,59 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
       return;
     }
 
+    onSubmitResult({
+      leagueId: selectedLeagueId,
+      player1Id,
+      player2Id,
+      finalScore: {
+        player1Sets: parsedScore.player1Sets,
+        player2Sets: parsedScore.player2Sets,
+        sets: [],
+      },
+      submitterName: submitterName.trim(),
+      comment: comment.trim() || undefined,
+    });
     setIsSuccess(true);
   };
 
   const handleResetForm = () => {
     setSelectedLeagueId('');
-    setSelectedMatchId('custom');
     setPlayer1Id('');
     setPlayer2Id('');
-    setSetScores(INITIAL_SET_SCORES);
+    setFinalScore('');
     setSubmitterName('');
     setComment('');
     setIsSuccess(false);
     setErrorMsg(null);
   };
 
-  // SUCCESS STATE (Aktiválódik sikeres beküldés után)
   if (isSuccess) {
     return (
       <div className="max-w-xl mx-auto bg-white border border-gray-150 rounded-3xl p-8 text-center shadow-lg animate-fadeIn my-6">
         <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-emerald-600">
           <CheckCircle2 className="w-10 h-10" />
         </div>
-        
+
         <h2 className="font-display font-extrabold text-2xl text-gray-950">Eredmény sikeresen beküldve!</h2>
         <p className="text-sm text-gray-500 mt-2 font-sans px-4">
-          A demo űrlap kitöltése sikeres volt, de a publikus felület jelenleg nem menti el véglegesen az adatokat.
+          A beküldés elmentve, és most már az admin jóváhagyási listájába került.
         </p>
 
-        {/* Eredmény összefoglaló kártya */}
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200/60 my-6 text-left space-y-3">
           <p className="text-[10px] font-mono uppercase tracking-wider text-gray-400">Összefoglaló</p>
           <div className="text-sm font-sans">
             <span className="font-semibold text-gray-500">Liga:</span> <span className="font-bold text-gray-800">{activeLeague?.name}</span>
           </div>
-          <div className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-gray-150">
+          <div className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-gray-150 gap-4">
             <div>
               <p className="font-semibold text-gray-900 text-sm">{getPlayerName(player1Id)}</p>
               <p className="font-semibold text-gray-950 text-sm">{getPlayerName(player2Id)}</p>
             </div>
             <div className="bg-brand-red text-white text-base font-mono font-bold px-3 py-1.5 rounded-lg">
-              {p1Sets} : {p2Sets}
+              {finalScore}
             </div>
           </div>
-          <p className="text-xs text-gray-400 italic">"A demo űrlap nem ír vissza véglegesen az adatok közé."</p>
+          <p className="text-xs text-gray-400 italic">"Jóváhagyás után kerül be a hivatalos táblába és statisztikákba."</p>
         </div>
 
         <div className="space-y-3">
@@ -204,20 +182,17 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fadeIn pb-16">
-      
-      {/* Cím szekció */}
       <div className="text-center space-y-2">
         <span className="bg-brand-red/10 text-brand-red font-mono font-bold text-xs px-2.5 py-1 rounded-md uppercase tracking-wider">
           Gyors eredményjelentés
         </span>
         <h2 className="text-3xl font-display font-extrabold text-gray-900">Eredmény Beküldése</h2>
         <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Fallabda mérkőzés lezárása. Ez a publikus űrlap csak kipróbálható, a beküldés nem módosítja véglegesen az adatokat.
+          Fallabda mérkőzés lezárása. Most már csak a két játékost és a végeredményt kell megadni, utána az adminhoz kerül.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white border border-gray-150 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
-        
         {errorMsg && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-start gap-3 text-sm">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-brand-red" />
@@ -228,7 +203,6 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
           </div>
         )}
 
-        {/* 1. LIGA KIVÁLASZTÁSA */}
         <div className="space-y-2">
           <label className="block text-xs font-mono font-bold uppercase text-gray-500 tracking-wider">
             1. Bajnokság kiválasztása *
@@ -236,9 +210,7 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
           {preselectedLeagueId ? (
             <div className="w-full bg-brand-red/5 border border-brand-red/20 rounded-xl px-4 py-3.5 text-sm font-bold text-brand-red flex justify-between items-center">
               <span>
-                {leagues.find(l => l.id === selectedLeagueId)?.name} – {
-                  getLeagueClassLabel(selectedLeagueId)
-                }
+                {leagues.find(l => l.id === selectedLeagueId)?.name} - {getLeagueClassLabel(selectedLeagueId)}
               </span>
               <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase px-2.5 py-1 bg-brand-red text-white rounded-md">
                 Kiválasztva
@@ -249,10 +221,9 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
               value={selectedLeagueId}
               onChange={(e) => {
                 setSelectedLeagueId(e.target.value);
-                setSelectedMatchId('custom');
                 setPlayer1Id('');
                 setPlayer2Id('');
-                setSetScores(INITIAL_SET_SCORES);
+                setFinalScore('');
                 setErrorMsg(null);
               }}
               className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3.5 text-sm font-medium text-gray-800 transition-colors cursor-pointer"
@@ -271,150 +242,86 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
 
         {selectedLeagueId && (
           <>
-            {/* 2. MECCS SORSOLÁS KIVÁLASZTÁSA */}
-            <div className="space-y-2 animate-fadeIn">
-              <label className="block text-xs font-mono font-bold uppercase text-gray-500 tracking-wider">
-                2. Mérkőzés kiválasztása *
-              </label>
-              <select
-                value={selectedMatchId}
-                onChange={(e) => handleMatchChange(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3.5 text-sm text-gray-800 transition-colors cursor-pointer font-medium"
-                id="input-select-match"
-              >
-                <option value="custom">Egyedi mérkőzés (nincs a tervezett sorsolásban)</option>
-                {availableMatches.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.round}. forduló: {getPlayerName(m.player1Id)} vs {getPlayerName(m.player2Id)}{m.sourceCell ? ` • ${m.sourceCell}` : ''}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeIn">
+              <div className="space-y-2">
+                <label className="block text-xs font-mono font-bold uppercase text-gray-400">1. Játékos *</label>
+                <select
+                  value={player1Id}
+                  onChange={(e) => {
+                    setPlayer1Id(e.target.value);
+                    setErrorMsg(null);
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red rounded-xl px-4 py-3 text-sm cursor-pointer font-medium text-gray-800"
+                  id="input-player-1"
+                  required
+                >
+                  <option value="">-- Válassz játékost --</option>
+                  {availablePlayers.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-mono font-bold uppercase text-gray-400">2. Játékos *</label>
+                <select
+                  value={player2Id}
+                  onChange={(e) => {
+                    setPlayer2Id(e.target.value);
+                    setErrorMsg(null);
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red rounded-xl px-4 py-3 text-sm cursor-pointer font-medium text-gray-800"
+                  id="input-player-2"
+                  required
+                >
+                  <option value="">-- Válassz játékost --</option>
+                  {availablePlayers.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* 3. JÁTÉKOSOK (HA EGYEDI / CUSTOM MECCS) */}
-            {selectedMatchId === 'custom' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeIn">
-                <div className="space-y-2">
-                  <label className="block text-xs font-mono font-bold uppercase text-gray-400">Hazai Játékos *</label>
-                  <select
-                    value={player1Id}
-                    onChange={(e) => setPlayer1Id(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red rounded-xl px-4 py-3 text-sm cursor-pointer font-medium text-gray-800"
-                    id="input-player-1"
-                    required
-                  >
-                    <option value="">-- Válassz hazai játékost --</option>
-                    {availablePlayers.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-mono font-bold uppercase text-gray-400">Vendég Játékos *</label>
-                  <select
-                    value={player2Id}
-                    onChange={(e) => setPlayer2Id(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red rounded-xl px-4 py-3 text-sm cursor-pointer font-medium text-gray-800"
-                    id="input-player-2"
-                    required
-                  >
-                    <option value="">-- Válassz vendég játékost --</option>
-                    {availablePlayers.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            ) : (
-              // Ha kötött meccs, csak kiírjuk fix kártyaként, hogy megbízható legyen
-              <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between animate-fadeIn text-sm">
-                <div>
-                  <p className="text-[10px] font-mono uppercase text-gray-400">Párosítás</p>
-                  <p className="font-bold text-gray-800 mt-1">{getPlayerName(player1Id)} vs {getPlayerName(player2Id)}</p>
-                </div>
-                <span className="text-xs bg-brand-red/10 text-brand-red font-mono px-2 py-1 rounded-sm uppercase font-bold">
-                  KÖTÖTT ÜTEMTERV
-                </span>
-              </div>
-            )}
-
-            {/* 4. SZETTEK EREDMÉNYEI (TOUCH FRIENDLY / COMPACT ROW MAP) */}
             {player1Id && player2Id && (
-              <div className="space-y-4 pt-4 border-t border-gray-100 animate-fadeIn" id="sets-input-section">
+              <div className="space-y-4 pt-4 border-t border-gray-100 animate-fadeIn" id="final-score-section">
                 <div className="flex justify-between items-center">
                   <label className="block text-xs font-mono font-bold uppercase text-gray-500 tracking-wider">
-                    3. Szettek pontszámai (PONT-SZÁMOK pl. 11-9)*
+                    3. Végeredmény *
                   </label>
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-red bg-brand-red/10 px-2 py-1 rounded-md">
                     <Info className="w-3 h-3" />
-                    Adjad meg a szettek pontos állását (pl. 11 és 8)
+                    Csak az 5 lejátszott szett kombinációja kell
                   </span>
                 </div>
 
-                {/* Scoreboard table view */}
-                <div className="space-y-3">
-                  
-                  {/* Table headers */}
-                  <div className="grid grid-cols-12 gap-2 text-center text-[10px] font-mono font-bold text-gray-400 uppercase hidden sm:grid">
-                    <span className="col-span-2 text-left">Szett</span>
-                    <span className="col-span-5 truncate text-left pl-1">{getPlayerName(player1Id)}</span>
-                    <span className="col-span-5 truncate text-left pl-1">{getPlayerName(player2Id)}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    <p className="text-[10px] font-mono uppercase text-gray-400">Párosítás</p>
+                    <p className="font-bold text-gray-800 mt-1">{getPlayerName(player1Id)} vs {getPlayerName(player2Id)}</p>
                   </div>
-
-                  {setScores.map((setScore, index) => {
-                    const isRequiredSet = index < 3;
-                    const setNumber = index + 1;
-
-                    return (
-                      <div key={setNumber} className="grid grid-cols-12 gap-2 items-center">
-                        <span className={`col-span-12 sm:col-span-2 font-mono pl-1 uppercase ${isRequiredSet ? 'text-xs font-bold text-gray-800' : 'text-xs text-gray-500'}`}>
-                          {setNumber}. Szett {!isRequiredSet && <span className="text-[9px] lowercase italic">(opc.)</span>}
-                        </span>
-                        <div className="col-span-6 sm:col-span-5">
-                          <input
-                            type="number"
-                            placeholder="Pont (hazai)"
-                            min="0"
-                            value={setScore.player1}
-                            onChange={(e) => updateSetScore(index, 'player1', e.target.value)}
-                            className={`w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono ${isRequiredSet ? 'font-bold' : ''}`}
-                            required={isRequiredSet}
-                            id={`set${setNumber}-player1`}
-                          />
-                        </div>
-                        <div className="col-span-6 sm:col-span-5">
-                          <input
-                            type="number"
-                            placeholder="Pont (vendég)"
-                            min="0"
-                            value={setScore.player2}
-                            onChange={(e) => updateSetScore(index, 'player2', e.target.value)}
-                            className={`w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono ${isRequiredSet ? 'font-bold' : ''}`}
-                            required={isRequiredSet}
-                            id={`set${setNumber}-player2`}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-mono font-bold uppercase text-gray-400">Szettarány</label>
+                    <select
+                      value={finalScore}
+                      onChange={(e) => {
+                        setFinalScore(e.target.value);
+                        setErrorMsg(null);
+                      }}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red rounded-xl px-4 py-3 text-sm cursor-pointer font-medium text-gray-800"
+                      id="input-final-score"
+                      required
+                    >
+                      <option value="">-- Válassz végeredményt --</option>
+                      {FINAL_SCORE_OPTIONS.map((score) => (
+                        <option key={score} value={score}>
+                          {score}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-
-                {/* Automatikus visszajelzés szettarányról */}
-                {setsArray.length >= 3 && (
-                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between text-sm sm:text-base text-gray-900 font-sans">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <Sparkles className="w-4 h-4 text-emerald-600" />
-                      <span>Becsült szettarány:</span>
-                    </div>
-                    <div className="font-mono font-black text-emerald-700 bg-white border border-emerald-100 px-3.5 py-1.5 rounded-lg text-lg">
-                      {p1Sets} : {p2Sets}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* 5. BEKÜLDŐ ADATAI */}
             <div className="space-y-4 pt-4 border-t border-gray-100">
               <label className="block text-xs font-mono font-bold uppercase text-gray-500 tracking-wider">
                 4. Beküldő neve
@@ -446,7 +353,6 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
               </div>
             </div>
 
-            {/* MEGERŐSÍTŐ SUBMIT BUTTON */}
             <div className="pt-4">
               <button
                 type="submit"

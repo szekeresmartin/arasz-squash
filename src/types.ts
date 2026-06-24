@@ -40,6 +40,7 @@ export interface Match {
   sourceCell?: string;
   reverseSourceCell?: string;
   resultId?: string;
+  submissionType?: 'planned' | 'custom';
 }
 
 export interface League {

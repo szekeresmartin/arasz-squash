@@ -18,16 +18,136 @@ import {
 const Rules = lazy(() => import('./components/Rules'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 
+const APP_STORAGE_KEY = 'arasz-squash-state-v1';
+const TEST_LEAGUE_ID = 'league-e';
+const TEST_PLAYER_1_ID = 'player-league-e-7-szekeres-martin';
+const TEST_PLAYER_2_ID = 'player-league-e-6-kov-cs-zsolt';
+
+type PersistedAppState = {
+  players: Player[];
+  leagues: League[];
+  matches: Match[];
+  results: Result[];
+  sponsors: Sponsor[];
+};
+
+function loadPersistedAppState(): PersistedAppState | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(APP_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as { version?: number; state?: PersistedAppState } | PersistedAppState;
+    if ('version' in parsed) {
+      return parsed.version === 1 ? parsed.state ?? null : null;
+    }
+
+    return parsed as PersistedAppState;
+  } catch {
+    return null;
+  }
+}
+
+function removeTestResultArtifacts(state: PersistedAppState): PersistedAppState {
+  const matches = state.matches.filter((match) => {
+    const pairMatches =
+      match.leagueId === TEST_LEAGUE_ID &&
+      (
+        (match.player1Id === TEST_PLAYER_1_ID && match.player2Id === TEST_PLAYER_2_ID) ||
+        (match.player1Id === TEST_PLAYER_2_ID && match.player2Id === TEST_PLAYER_1_ID)
+      );
+
+    if (!pairMatches || !match.submittedScore) {
+      return true;
+    }
+
+    const is5to0 =
+      (match.submittedScore.player1Sets === 5 && match.submittedScore.player2Sets === 0) ||
+      (match.submittedScore.player1Sets === 0 && match.submittedScore.player2Sets === 5);
+
+    if (!is5to0) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const results = state.results.filter((result) => {
+    const pairMatches =
+      result.leagueId === TEST_LEAGUE_ID &&
+      (
+        (result.player1Id === TEST_PLAYER_1_ID && result.player2Id === TEST_PLAYER_2_ID) ||
+        (result.player1Id === TEST_PLAYER_2_ID && result.player2Id === TEST_PLAYER_1_ID)
+      );
+
+    if (!pairMatches) {
+      return true;
+    }
+
+    const is5to0 =
+      (result.normalizedSetsWon === 5 && result.normalizedSetsLost === 0) ||
+      (result.normalizedSetsWon === 0 && result.normalizedSetsLost === 5);
+
+    return !is5to0;
+  });
+
+  return {
+    ...state,
+    matches,
+    results,
+  };
+}
+
 export default function App() {
-  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
-  const [leagues, setLeagues] = useState<League[]>(DEFAULT_LEAGUES);
-  const [matches, setMatches] = useState<Match[]>(DEFAULT_MATCHES);
-  const [results] = useState<Result[]>(DEFAULT_RESULTS);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(DEFAULT_SPONSORS);
+  const persistedState = loadPersistedAppState();
+  const cleanedPersistedState = persistedState ? removeTestResultArtifacts(persistedState) : null;
+
+  const [players, setPlayers] = useState<Player[]>(cleanedPersistedState?.players ?? DEFAULT_PLAYERS);
+  const [leagues, setLeagues] = useState<League[]>(cleanedPersistedState?.leagues ?? DEFAULT_LEAGUES);
+  const [matches, setMatches] = useState<Match[]>(cleanedPersistedState?.matches ?? DEFAULT_MATCHES);
+  const [results, setResults] = useState<Result[]>(cleanedPersistedState?.results ?? DEFAULT_RESULTS);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(cleanedPersistedState?.sponsors ?? DEFAULT_SPONSORS);
 
   const [currentView, setCurrentView] = useState<'home' | 'leagues' | 'rules' | 'admin'>('home');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [selectedSubTab, setSelectedSubTab] = useState<string>('tabella');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const state: PersistedAppState = {
+      players,
+      leagues,
+      matches,
+      results,
+      sponsors,
+    };
+
+    window.localStorage.setItem(APP_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      state,
+    }));
+  }, [players, leagues, matches, results, sponsors]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !persistedState || !cleanedPersistedState) {
+      return;
+    }
+
+    if (persistedState.matches.length !== cleanedPersistedState.matches.length || persistedState.results.length !== cleanedPersistedState.results.length) {
+      window.localStorage.setItem(APP_STORAGE_KEY, JSON.stringify({
+        version: 1,
+        state: cleanedPersistedState,
+      }));
+    }
+  }, [persistedState, cleanedPersistedState]);
 
   const tabParamToState = (tab: string | null) => {
     if (tab === 'eredmeny-bekuldese') return 'eredmeny_bekuldese';
@@ -152,20 +272,157 @@ export default function App() {
     setMatches(prev => [...prev, ...newMatches]);
   };
 
-  const handleApproveMatch = (matchId: string, finalScoreOverride?: MatchScore) => {
-    setMatches(prev => prev.map(m => {
-      if (m.id === matchId) {
-        return {
-          ...m,
-          status: 'Jóváhagyva',
-          submittedScore: finalScoreOverride || m.submittedScore
-        };
+  const handleUpdateMatchSubmission = (matchId: string, finalScore: MatchScore) => {
+    const nowIso = new Date().toISOString();
+    setMatches(prev => prev.map(match => {
+      if (match.id !== matchId) {
+        return match;
       }
-      return m;
+
+      return {
+        ...match,
+        status: 'Beküldve',
+        submittedScore: finalScore,
+        submittedAt: nowIso,
+      };
     }));
   };
 
+  const normalizeSubmittedScore = (score: MatchScore): MatchScore => {
+    if (score.player1Sets === score.player2Sets) {
+      return score;
+    }
+
+    if (score.player1Sets > score.player2Sets) {
+      return {
+        ...score,
+        player1Sets: 3,
+      };
+    }
+
+    return {
+      ...score,
+      player2Sets: 3,
+    };
+  };
+
+  const buildApprovedResult = (match: Match, score: MatchScore): Result => {
+    return {
+      id: match.resultId || `r_${match.id}`,
+      leagueId: match.leagueId,
+      matchId: match.id,
+      player1Id: match.player1Id,
+      player2Id: match.player2Id,
+      sourceSheet: match.submissionType === 'custom' ? 'Kézi beküldés' : 'Webes beküldés',
+      sourceCells: match.sourceCell ? [match.sourceCell] : [],
+      rawHomeToken: `${score.player1Sets}:${score.player2Sets}`,
+      rawAwayToken: undefined,
+      normalizedSetsWon: score.player1Sets,
+      normalizedSetsLost: score.player2Sets,
+      kind: 'score',
+      status: 'approved',
+      playedOnCourt: true,
+      isForfeit: false,
+    };
+  };
+
+  const handleSubmitResult = (payload: {
+    leagueId: string;
+    player1Id: string;
+    player2Id: string;
+    finalScore: MatchScore;
+    submitterName: string;
+    comment?: string;
+  }) => {
+    const nowIso = new Date().toISOString();
+    const normalizedScore = normalizeSubmittedScore(payload.finalScore);
+    const existingPlannedMatch = matches.find(match => {
+      const sameLeague = match.leagueId === payload.leagueId;
+      const sameOrder = match.player1Id === payload.player1Id && match.player2Id === payload.player2Id;
+      const reverseOrder = match.player1Id === payload.player2Id && match.player2Id === payload.player1Id;
+      return sameLeague && match.status === 'Tervezett' && (sameOrder || reverseOrder);
+    });
+
+    if (existingPlannedMatch) {
+      setMatches(prev => prev.map(match => {
+        if (match.id !== existingPlannedMatch.id) {
+          return match;
+        }
+
+        return {
+          ...match,
+          status: 'Beküldve',
+          submittedScore: normalizedScore,
+          submitterName: payload.submitterName,
+          comment: payload.comment,
+          submittedAt: nowIso,
+          submissionType: 'planned',
+        };
+      }));
+      return;
+    }
+
+    setMatches(prev => [
+      {
+        id: `m_sub_${Date.now()}`,
+        leagueId: payload.leagueId,
+        round: 0,
+        player1Id: payload.player1Id,
+        player2Id: payload.player2Id,
+        status: 'Beküldve',
+        submittedScore: normalizedScore,
+        submitterName: payload.submitterName,
+        comment: payload.comment,
+        submittedAt: nowIso,
+        submissionType: 'custom',
+      },
+      ...prev,
+    ]);
+  };
+
+  const handleApproveMatch = (matchId: string, finalScoreOverride?: MatchScore) => {
+    const match = matches.find(m => m.id === matchId);
+    if (!match) {
+      return;
+    }
+
+    const approvedScore = finalScoreOverride || match.submittedScore;
+    if (!approvedScore) {
+      return;
+    }
+
+    setMatches(prev => prev.map(m => {
+      if (m.id !== matchId) {
+        return m;
+      }
+
+      return {
+        ...m,
+        status: 'Jóváhagyva',
+        submittedScore: approvedScore,
+      };
+    }));
+
+    setResults(prev => {
+      if (prev.some(result => result.matchId === matchId)) {
+        return prev;
+      }
+
+      return [buildApprovedResult({ ...match, submittedScore: approvedScore, status: 'Jóváhagyva' }, approvedScore), ...prev];
+    });
+  };
+
   const handleRejectMatch = (matchId: string) => {
+    const match = matches.find(m => m.id === matchId);
+    if (!match) {
+      return;
+    }
+
+    if (match.submissionType === 'custom') {
+      setMatches(prev => prev.filter(m => m.id !== matchId));
+      return;
+    }
+
     setMatches(prev => prev.map(m => {
       if (m.id === matchId) {
         return {
@@ -174,10 +431,43 @@ export default function App() {
           submittedScore: undefined,
           submitterName: undefined,
           submitterContact: undefined,
-          comment: undefined
+          comment: undefined,
+          submittedAt: undefined,
+          submissionType: undefined,
         };
       }
       return m;
+    }));
+  };
+
+  const handleDeleteMatch = (matchId: string) => {
+    const match = matches.find(m => m.id === matchId);
+    if (!match) {
+      return;
+    }
+
+    setResults(prev => prev.filter(result => result.matchId !== matchId));
+
+    if (match.submissionType === 'custom' || match.status === 'Jóváhagyva') {
+      setMatches(prev => prev.filter(m => m.id !== matchId));
+      return;
+    }
+
+    setMatches(prev => prev.map(m => {
+      if (m.id !== matchId) {
+        return m;
+      }
+
+      return {
+        ...m,
+        status: 'Tervezett',
+        submittedScore: undefined,
+        submitterName: undefined,
+        submitterContact: undefined,
+        comment: undefined,
+        submittedAt: undefined,
+        submissionType: undefined,
+      };
     }));
   };
 
@@ -215,6 +505,7 @@ export default function App() {
           leagues={leagues}
           matches={matches}
           results={results}
+          onSubmitResult={handleSubmitResult}
           setView={handleSetView}
           selectedLeagueId={selectedLeagueId}
           initialSubTab={selectedSubTab}
@@ -241,7 +532,9 @@ export default function App() {
               onUpdateLeague={handleUpdateLeague}
               onAddMatches={handleAddMatches}
               onApproveMatch={handleApproveMatch}
+              onUpdateMatchSubmission={handleUpdateMatchSubmission}
               onRejectMatch={handleRejectMatch}
+              onDeleteMatch={handleDeleteMatch}
               onAddSponsor={handleAddSponsor}
               onUpdateSponsor={handleUpdateSponsor}
             />
