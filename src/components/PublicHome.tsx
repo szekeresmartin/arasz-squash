@@ -20,12 +20,12 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
         <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
         <div className="relative z-10 max-w-3xl space-y-6">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider uppercase border border-white/10">
-            <Trophy className="w-3.5 h-3.5 text-yellow-400" />
-            2026-os szezon folyamatban
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-sm font-display font-black tracking-[0.18em] uppercase border border-white/10">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            15. squash liga
           </div>
 
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.05em] leading-[0.92] drop-shadow-[0_4px_18px_rgba(0,0,0,0.18)]">
             Arasz-Öntöde <br />
             <span className="text-white/95">Squashliga</span>
           </h1>

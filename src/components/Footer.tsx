@@ -67,9 +67,6 @@ export default function Footer({ setView }: FooterProps) {
             <p className="text-xs text-gray-400 leading-relaxed font-sans">
               A tabella az approved import eredményekből számolódik, a sorsolás pedig a generált meccslistát követi. A publikus eredménybeküldő jelenleg csak demó, nem írja vissza véglegesen az adatokat.
             </p>
-            <div className="rounded-xl border border-gray-800 bg-gray-950/40 px-3 py-3 text-xs font-mono text-gray-500">
-              Élesítés előtt: jogi oldalak és valós beküldési folyamat szükséges.
-            </div>
           </div>
 
         </div>
