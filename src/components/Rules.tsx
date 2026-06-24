@@ -1,11 +1,7 @@
 import React from 'react';
-import { Shield, Award, Calendar, ToggleLeft, Heart, Zap, FileText } from 'lucide-react';
+import { Shield, Award, Calendar, Heart, FileText } from 'lucide-react';
 
-interface RulesProps {
-  setView: (view: 'home' | 'leagues' | 'rules' | 'admin') => void;
-}
-
-export default function Rules({ setView }: RulesProps) {
+export default function Rules() {
   return (
     <div className="max-w-4xl mx-auto space-y-10 animate-fadeIn pb-16">
       
@@ -19,7 +15,7 @@ export default function Rules({ setView }: RulesProps) {
           <h1 className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight">
             Arasz-Öntöde Squashliga Szabálykönyv
           </h1>
-          <p className="text-sm sm:text-base text-red-150 max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-white/85 max-w-xl mx-auto">
             A sportszerű játék, a biztonság és a gördülékeny lebonyolítás érdekében kérjük minden tagunkat a szabályok szigorú betartására.
           </p>
         </div>
@@ -31,7 +27,7 @@ export default function Rules({ setView }: RulesProps) {
         {/* Kártya 1: Lebonyolítás */}
         <div className="bg-white border border-gray-150 p-6 rounded-2xl shadow-xs space-y-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-50 text-brand-red p-2.5 rounded-xl">
+            <div className="bg-brand-red/10 text-brand-red p-2.5 rounded-xl">
               <Calendar className="w-5 h-5" />
             </div>
             <h3 className="font-display font-bold text-lg text-gray-900">1. A Bajnokság Rendje</h3>
@@ -52,7 +48,7 @@ export default function Rules({ setView }: RulesProps) {
         {/* Kártya 2: Pontozási Rendszer */}
         <div className="bg-white border border-gray-150 p-6 rounded-2xl shadow-xs space-y-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-50 text-brand-red p-2.5 rounded-xl">
+            <div className="bg-brand-red/10 text-brand-red p-2.5 rounded-xl">
               <Award className="w-5 h-5" />
             </div>
             <h3 className="font-display font-bold text-lg text-gray-900">2. Pontozás és Szettek</h3>
@@ -73,7 +69,7 @@ export default function Rules({ setView }: RulesProps) {
         {/* Kártya 3: Biztonság */}
         <div className="bg-white border border-gray-150 p-6 rounded-2xl shadow-xs space-y-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-50 text-brand-red p-2.5 rounded-xl">
+            <div className="bg-brand-red/10 text-brand-red p-2.5 rounded-xl">
               <Shield className="w-5 h-5" />
             </div>
             <h3 className="font-display font-bold text-lg text-gray-900">3. Biztonság és Felszerelés</h3>
@@ -94,7 +90,7 @@ export default function Rules({ setView }: RulesProps) {
         {/* Kártya 4: Beküldés */}
         <div className="bg-white border border-gray-150 p-6 rounded-2xl shadow-xs space-y-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-50 text-brand-red p-2.5 rounded-xl">
+            <div className="bg-brand-red/10 text-brand-red p-2.5 rounded-xl">
               <FileText className="w-5 h-5" />
             </div>
             <h3 className="font-display font-bold text-lg text-gray-900">4. Eredmények Rögzítése</h3>

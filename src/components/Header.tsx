@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Menu, X, Trophy, FileText, Home } from 'lucide-react';
 
+const brandLogoSrc = new URL('../../data/aos_logo.png', import.meta.url).href;
+
 interface HeaderProps {
   currentView: 'home' | 'leagues' | 'rules' | 'admin';
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
@@ -26,23 +28,19 @@ export default function Header({ currentView, setView }: HeaderProps) {
         <div className="flex justify-between items-center h-16 sm:h-20 gap-3">
           
           {/* Logo Brand Zone */}
-          <div 
+          <button
+            type="button"
             onClick={() => handleNavClick('home')} 
             className="flex items-center gap-3 cursor-pointer group"
             id="brand-logo"
+            aria-label="Vissza a kezdőlapra"
           >
-            <div className="bg-brand-red text-white p-2.5 rounded-xl group-hover:bg-brand-maroon shadow-sm transition-colors duration-200">
-              <Trophy className="w-5.5 h-5.5" />
-            </div>
-            <div>
-              <span className="font-display font-black text-base sm:text-lg tracking-tight text-gray-900 uppercase block leading-none">
-                Arasz-Öntöde
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-[#9C1C1C] uppercase font-extrabold mt-0.5 block">
-                Squashliga
-              </span>
-            </div>
-          </div>
+            <img
+              src={brandLogoSrc}
+              alt="Arasz-Öntöde Squashliga"
+              className="h-11 sm:h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+            />
+          </button>
 
           {/* Desktop Navigation - Only Public View Links */}
           <nav className="hidden lg:flex items-center gap-1">
@@ -54,7 +52,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
                   onClick={() => handleNavClick(item.view)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-sans text-sm font-bold transition-all duration-150 ${
                     isActive
-                      ? 'bg-red-50 text-brand-red'
+                      ? 'bg-brand-red/10 text-brand-red'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                   id={`nav-item-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
@@ -69,9 +67,13 @@ export default function Header({ currentView, setView }: HeaderProps) {
           {/* Hamburger Menu Trigger (Mobile) */}
           <div className="flex items-center gap-3 lg:hidden">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50"
               id="mobile-menu-trigger"
+              aria-label={mobileMenuOpen ? 'Menü bezárása' : 'Menü megnyitása'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation-panel"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -90,7 +92,7 @@ export default function Header({ currentView, setView }: HeaderProps) {
                 key={item.name}
                 onClick={() => handleNavClick(item.view)}
                 className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left font-sans text-sm font-bold ${
-                  isActive ? 'bg-red-50 text-brand-red' : 'text-gray-600 hover:bg-gray-50'
+                  isActive ? 'bg-brand-red/10 text-brand-red' : 'text-gray-600 hover:bg-gray-50'
                 }`}
                 id={`mobile-nav-item-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
               >

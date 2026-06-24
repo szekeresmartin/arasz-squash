@@ -17,6 +17,19 @@ A feltöltött Viber-beszélgetésből ezek a tényleges meccseredmények olvash
 | Németh Balázs – Szerdahelyi Dániel    |      3–2 |
 | Vincze Krisztián – Szekeres Martin    |      1–4 |
 | Németh Balázs – Bakos Mátyás          |      3–2 |
+| Bakos Mátyás – Hajba Tibor           |      5–0 |
+| Szerdahelyi Dániel – Hajba Zoé       |      5–0 |
+| Vincze Krisztián – Németh Balázs     |      0–5 |
+| Szekeres Martin – Németh Balázs      |      2–3 |
+| Szekeres Martin – Nagy Zoltán        |      5–0 |
+| Kovács ZS – Vincze K                 |      0–5 |
+
+## C liga
+
+| Meccs                         | Eredmény |
+| ----------------------------- | -------: |
+| Tóth Bálint – Börzsönyi Balázs |      3–2 |
+| Börzsönyi Balázs – Kmet Alex  |      4–1 |
 
 ## D liga
 
@@ -28,6 +41,8 @@ A feltöltött Viber-beszélgetésből ezek a tényleges meccseredmények olvash
 | Gáspár Júlia – Molnár Milán   |      1–4 |
 | Molnár Milán – Bankits Csaba  |      0–5 |
 | Zsoldos Tamás – Lukács Dániel |      5–0 |
+| Bíró Zoltán – Molnár Milán    |      4–1 |
+| Bognár Barna – Gáspár Júlia   |      4–1 |
 
 ## B liga
 

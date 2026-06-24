@@ -1,10 +1,9 @@
 import React from 'react';
-import { League, Match, Player } from '../types';
+import { League, Match } from '../types';
 import { Trophy, Calendar, CheckSquare, ArrowRight } from 'lucide-react';
 import { getLeagueClassLabel } from '../data';
 
 interface PublicHomeProps {
-  players: Player[];
   leagues: League[];
   matches: Match[];
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
@@ -17,7 +16,7 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
 
   return (
     <div className="space-y-12 pb-16 animate-fadeIn bg-radial-pattern">
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-maroon via-brand-red to-red-900 text-white rounded-3xl py-16 px-8 sm:px-12 shadow-xl border border-red-800">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-maroon via-brand-red to-brand-maroon text-white rounded-3xl py-16 px-8 sm:px-12 shadow-xl border border-brand-maroon">
         <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
         <div className="relative z-10 max-w-3xl space-y-6">
@@ -28,10 +27,10 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
 
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
             Arasz-Öntöde <br />
-            <span className="text-red-300">Squashliga</span>
+            <span className="text-white/95">Squashliga</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-red-100 max-w-xl font-normal leading-relaxed">
+          <p className="text-base sm:text-lg text-white/85 max-w-xl font-normal leading-relaxed">
             Válassz bajnokságot, és utána nézd meg a tabellát, a sorsolást, az eredményeket vagy küldj be új meccseredményt.
           </p>
         </div>
@@ -46,7 +45,7 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
             <p className="text-xs font-mono text-gray-500 uppercase tracking-widest">Aktív ligák</p>
             <h4 className="text-3xl font-display font-extrabold text-gray-900">{activeLeagues.length} Liga</h4>
           </div>
-          <div className="bg-red-50 text-brand-red p-3 rounded-xl">
+          <div className="bg-brand-red/10 text-brand-red p-3 rounded-xl">
             <Trophy className="w-6 h-6" />
           </div>
         </div>
@@ -130,7 +129,7 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
           <div className="pt-2 flex justify-center gap-3">
             <button
               onClick={() => setView('leagues')}
-              className="text-xs font-mono font-bold uppercase tracking-wider text-brand-red border border-brand-red/20 hover:border-brand-red px-5 py-3 rounded-xl hover:bg-red-50/50 transition-colors"
+              className="text-xs font-mono font-bold uppercase tracking-wider text-brand-red border border-brand-red/20 hover:border-brand-red px-5 py-3 rounded-xl hover:bg-brand-red/5 transition-colors"
               id="home-open-leagues"
             >
               Összes bajnokság

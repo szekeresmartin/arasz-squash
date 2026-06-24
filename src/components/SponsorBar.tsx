@@ -17,7 +17,6 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
           <div className="h-1 w-12 bg-brand-red mx-auto mt-3 rounded-full"></div>
         </div>
 
-        {/* Desktop view: Single row flex grid, Mobile view: Grid or scrollable wrapper */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 items-stretch justify-center">
           {activeSponsors.map((sponsor) => (
             <a
@@ -25,34 +24,26 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
               href={sponsor.websiteUrl || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative flex flex-col items-center justify-center bg-white border border-gray-200/80 rounded-xl p-4 sm:p-5 hover:border-brand-red hover:shadow-md transition-all duration-300 overflow-hidden min-h-28"
+              className="group relative flex items-center justify-center bg-white border border-gray-200/80 rounded-xl p-5 sm:p-6 hover:border-brand-red hover:shadow-md transition-all duration-300 overflow-hidden min-h-28"
               id={`sponsor-card-${sponsor.id}`}
+              aria-label={sponsor.name}
+              title={sponsor.name}
             >
-              {/* Decorative top-line gradient */}
               <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${sponsor.colorHex}`} />
-
-              <div className="h-10 flex items-center justify-center">
-                <span className="font-display font-extrabold text-lg text-gray-700 group-hover:text-brand-red transition-colors duration-300 text-center uppercase tracking-wide">
-                  {sponsor.name.split(' ')[0]}
-                  {sponsor.name.includes('.') || sponsor.name.includes('Kft') ? (
-                    <span className="text-[10px] lowercase font-normal block text-gray-400 group-hover:text-brand-red/70">
-                      {sponsor.name.split(' ').slice(1).join(' ') || 'partner'}
-                    </span>
-                  ) : null}
-                </span>
-              </div>
-
-              {/* Subtle hover background highlight details */}
-              <div className="mt-2 text-[10px] font-mono text-gray-400 group-hover:text-brand-red/80 transition-colors uppercase">
-                {sponsor.name.includes('Fagyi') ? 'fagylaltozó' : sponsor.name.includes('busz') ? 'személyszállítás' : 'támogató'}
-              </div>
+              {sponsor.logoPath ? (
+                <img
+                  src={sponsor.logoPath}
+                  alt={sponsor.name}
+                  loading="lazy"
+                  className="max-h-16 sm:max-h-20 w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                />
+              ) : (
+                <div className="h-16 w-full max-w-36 rounded-lg border border-dashed border-gray-200 bg-gray-50" />
+              )}
             </a>
           ))}
         </div>
         
-        <p className="text-center text-xs text-gray-400 mt-8 font-mono">
-          Szeretne Ön is csatlakozni szponzorként? Keressen minket a klub hivatalos csatornáin.
-        </p>
       </div>
     </section>
   );

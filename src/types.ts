@@ -91,6 +91,7 @@ export interface Sponsor {
   id: string;
   name: string;
   logoText: string;
+  logoPath?: string;
   websiteUrl?: string;
   colorHex: string;
   isActive: boolean;

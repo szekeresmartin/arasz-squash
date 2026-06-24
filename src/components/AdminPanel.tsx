@@ -75,7 +75,7 @@ export default function AdminPanel({
             <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">Lejátszott mérkőzések</p>
             <h4 className="text-3xl font-display font-extrabold text-gray-900 mt-1">{playedMatchesCount}</h4>
           </div>
-          <div className="p-3 rounded-xl bg-red-50 text-brand-red">
+          <div className="p-3 rounded-xl bg-brand-red/10 text-brand-red">
             <Trophy className="w-6 h-6" />
           </div>
         </div>
@@ -90,8 +90,8 @@ export default function AdminPanel({
           </div>
           {pendingSubmissions.length > 0 && (
             <span className="absolute top-3 right-3 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-red/60 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-red"></span>
             </span>
           )}
         </div>
@@ -799,7 +799,7 @@ export default function AdminPanel({
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
-                isDragOver ? 'border-brand-red bg-red-50/10' : 'border-gray-300 bg-white'
+                isDragOver ? 'border-brand-red bg-brand-red/5' : 'border-gray-300 bg-white'
               }`}
             >
               <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
@@ -874,7 +874,7 @@ export default function AdminPanel({
                     </thead>
                     <tbody className="divide-y">
                       {parsedRows.map((r, idx) => (
-                        <tr key={idx} className={r.isValid ? 'bg-white' : 'bg-red-50/10'}>
+                        <tr key={idx} className={r.isValid ? 'bg-white' : 'bg-brand-red/5'}>
                           <td className="p-3 text-center font-mono text-gray-400">{r.lineNum}</td>
                           <td className="p-3 font-semibold text-gray-800">
                             {r.player1Name || '?'} vs {r.player2Name || '?'}
@@ -1458,7 +1458,7 @@ export default function AdminPanel({
               onClick={() => setActiveAdminTab(rail.id)}
               className={`w-full flex justify-between items-center px-4 py-3 text-sm font-semibold rounded-xl text-left transition-all ${
                 isSelected
-                  ? 'bg-red-50 text-brand-red font-bold'
+                  ? 'bg-brand-red/10 text-brand-red font-bold'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
               }`}
               id={`admin-rail-${rail.id}`}

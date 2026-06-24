@@ -63,10 +63,13 @@ export default function Footer({ setView }: FooterProps) {
 
           {/* Useful/Regulatory */}
           <div className="space-y-4">
-            <h4 className="text-sm font-mono font-bold tracking-wider uppercase text-white">Hasznos Tudnivalók</h4>
+            <h4 className="text-sm font-mono font-bold tracking-wider uppercase text-white">Publikus állapot</h4>
             <p className="text-xs text-gray-400 leading-relaxed font-sans">
-              A tabella az approved import eredményekből számolódik, a sorsolás pedig a generált meccslistát követi.
+              A tabella az approved import eredményekből számolódik, a sorsolás pedig a generált meccslistát követi. A publikus eredménybeküldő jelenleg csak demó, nem írja vissza véglegesen az adatokat.
             </p>
+            <div className="rounded-xl border border-gray-800 bg-gray-950/40 px-3 py-3 text-xs font-mono text-gray-500">
+              Élesítés előtt: jogi oldalak és valós beküldési folyamat szükséges.
+            </div>
           </div>
 
         </div>
@@ -74,9 +77,6 @@ export default function Footer({ setView }: FooterProps) {
         {/* Divider line */}
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono text-gray-500">
           <p>© {new Date().getFullYear()} Arasz-Öntöde Squashliga. Minden jog fenntartva.</p>
-          <p className="flex items-center gap-1">
-            Prototípus exportból
-          </p>
         </div>
       </div>
     </footer>

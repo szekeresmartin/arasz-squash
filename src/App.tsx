@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PublicHome from './components/PublicHome';
 import PublicLeagues from './components/PublicLeagues';
-import Rules from './components/Rules';
-import AdminPanel from './components/AdminPanel';
 import SponsorBar from './components/SponsorBar';
 import { Player, League, Match, Sponsor, MatchScore, Result } from './types';
 import {
@@ -17,20 +15,16 @@ import {
   getLeagueSlug,
 } from './data';
 
+const Rules = lazy(() => import('./components/Rules'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+
 export default function App() {
-  
-  // ----------------------------------------------------
-  // RESZONZÍV PERSISZTENCIA (REACTIVE STORAGE)
-  // ----------------------------------------------------
   const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
   const [leagues, setLeagues] = useState<League[]>(DEFAULT_LEAGUES);
   const [matches, setMatches] = useState<Match[]>(DEFAULT_MATCHES);
   const [results] = useState<Result[]>(DEFAULT_RESULTS);
   const [sponsors, setSponsors] = useState<Sponsor[]>(DEFAULT_SPONSORS);
 
-  // ----------------------------------------------------
-  // NAVIGÁCIÓS ÁLLAPOTOK & ÚTVONALAK (ROUTING)
-  // ----------------------------------------------------
   const [currentView, setCurrentView] = useState<'home' | 'leagues' | 'rules' | 'admin'>('home');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [selectedSubTab, setSelectedSubTab] = useState<string>('tabella');
@@ -53,7 +47,6 @@ export default function App() {
     return `/bajnoksag/${getLeagueSlug(leagueId)}?tab=${tabStateToParam(tab)}`;
   };
 
-  // Útvonal-szinkronizáció beolvasása betöltéskor és lépkedésnél
   useEffect(() => {
     const syncViewFromLocation = () => {
       const path = window.location.pathname;
@@ -95,7 +88,6 @@ export default function App() {
     };
   }, []);
 
-  // Segédfüggvény külső navigáláshoz és fül átállításhoz
   const handleSetView = (
     view: 'home' | 'leagues' | 'rules' | 'admin', 
     extra?: { leagueId?: string; subTab?: string }
@@ -131,9 +123,6 @@ export default function App() {
     }
   };
 
-  // ----------------------------------------------------
-  // BEKÜLDÉSEK & JÓVÁHAGYÁSOK (DISPATCH HANDLERS)
-  // ----------------------------------------------------
   const handleAddPlayer = (p: Player) => {
     setPlayers(prev => [p, ...prev]);
   };
@@ -160,18 +149,15 @@ export default function App() {
   };
 
   const handleAddMatches = (newMatches: Match[]) => {
-    // Sorsolás importálásakor hozzáfűzzük a tervezett meccseket
     setMatches(prev => [...prev, ...newMatches]);
   };
 
-  // Beküldött meccs jóváhagyása
   const handleApproveMatch = (matchId: string, finalScoreOverride?: MatchScore) => {
     setMatches(prev => prev.map(m => {
       if (m.id === matchId) {
         return {
           ...m,
           status: 'Jóváhagyva',
-          // Ha az admin szerkesztette elmentjük az új pontokat, egyébként marad a beküldött
           submittedScore: finalScoreOverride || m.submittedScore
         };
       }
@@ -179,11 +165,9 @@ export default function App() {
     }));
   };
 
-  // Beküldött meccs elutasítása
   const handleRejectMatch = (matchId: string) => {
     setMatches(prev => prev.map(m => {
       if (m.id === matchId) {
-        // Visszaállítjuk tervezett státuszba és levesszük a beküldött részleteket
         return {
           ...m,
           status: 'Tervezett',
@@ -207,18 +191,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-brand-light flex flex-col justify-between" id="app-wrapper">
-      
-      {/* 1. Header Navigation */}
       <Header 
         currentView={currentView} 
         setView={handleSetView} 
       />
 
-      {/* 2. Main Workstation Area */}
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" id="app-main">
         {currentView === 'home' && (
           <PublicHome 
-            players={players} 
             leagues={leagues} 
             matches={matches} 
             setView={handleSetView} 
@@ -238,33 +218,35 @@ export default function App() {
       )}
 
         {currentView === 'rules' && (
-          <Rules setView={handleSetView} />
+          <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Szabályzat betöltése...</div>}>
+            <Rules />
+          </Suspense>
         )}
 
         {currentView === 'admin' && (
-          <AdminPanel
-            players={players}
-            leagues={leagues}
-            matches={matches}
-            sponsors={sponsors}
-            onAddPlayer={handleAddPlayer}
-            onUpdatePlayer={handleUpdatePlayer}
-            onDeletePlayer={handleDeletePlayer}
-            onAddLeague={handleAddLeague}
-            onUpdateLeague={handleUpdateLeague}
-            onAddMatches={handleAddMatches}
-            onApproveMatch={handleApproveMatch}
-            onRejectMatch={handleRejectMatch}
-            onAddSponsor={handleAddSponsor}
-            onUpdateSponsor={handleUpdateSponsor}
-          />
+          <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Admin felület betöltése...</div>}>
+            <AdminPanel
+              players={players}
+              leagues={leagues}
+              matches={matches}
+              sponsors={sponsors}
+              onAddPlayer={handleAddPlayer}
+              onUpdatePlayer={handleUpdatePlayer}
+              onDeletePlayer={handleDeletePlayer}
+              onAddLeague={handleAddLeague}
+              onUpdateLeague={handleUpdateLeague}
+              onAddMatches={handleAddMatches}
+              onApproveMatch={handleApproveMatch}
+              onRejectMatch={handleRejectMatch}
+              onAddSponsor={handleAddSponsor}
+              onUpdateSponsor={handleUpdateSponsor}
+            />
+          </Suspense>
         )}
       </main>
 
-      {/* 3. Partner & Sponsors Horizontal bar */}
       <SponsorBar sponsors={sponsors} />
 
-      {/* 4. Footer credits */}
       <Footer setView={handleSetView} />
 
     </div>

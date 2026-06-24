@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, League, Match, SetScore, MatchScore } from '../types';
-import { Trophy, HelpCircle, Send, CheckCircle2, AlertCircle, Plus, Info, Sparkles } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
 import { getLeagueClassLabel } from '../data';
 
 interface SubmitResultProps {
@@ -11,9 +11,29 @@ interface SubmitResultProps {
   preselectedLeagueId?: string;
 }
 
+type EditableSetScore = {
+  player1: string;
+  player2: string;
+};
+
+const INITIAL_SET_SCORES: EditableSetScore[] = [
+  { player1: '', player2: '' },
+  { player1: '', player2: '' },
+  { player1: '', player2: '' },
+  { player1: '', player2: '' },
+  { player1: '', player2: '' },
+];
+
 export default function SubmitResult({ players, leagues, matches, setView, preselectedLeagueId }: SubmitResultProps) {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>(preselectedLeagueId || '');
   const [selectedMatchId, setSelectedMatchId] = useState<string>('custom');
+  const [player1Id, setPlayer1Id] = useState<string>('');
+  const [player2Id, setPlayer2Id] = useState<string>('');
+  const [setScores, setSetScores] = useState<EditableSetScore[]>(INITIAL_SET_SCORES);
+  const [submitterName, setSubmitterName] = useState<string>('');
+  const [comment, setComment] = useState<string>('');
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (preselectedLeagueId) {
@@ -21,46 +41,20 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
       setSelectedMatchId('custom');
       setPlayer1Id('');
       setPlayer2Id('');
+      setSetScores(INITIAL_SET_SCORES);
+      setErrorMsg(null);
     }
   }, [preselectedLeagueId]);
-  
-  // Custom match feltöltés esetén
-  const [player1Id, setPlayer1Id] = useState<string>('');
-  const [player2Id, setPlayer2Id] = useState<string>('');
-  
-  // Szettek eredményei (max 5)
-  const [set1P1, setSet1P1] = useState<string>('');
-  const [set1P2, setSet1P2] = useState<string>('');
-  const [set2P1, setSet2P1] = useState<string>('');
-  const [set2P2, setSet2P2] = useState<string>('');
-  const [set3P1, setSet3P1] = useState<string>('');
-  const [set3P2, setSet3P2] = useState<string>('');
-  const [set4P1, setSet4P1] = useState<string>('');
-  const [set4P2, setSet4P2] = useState<string>('');
-  const [set5P1, setSet5P1] = useState<string>('');
-  const [set5P2, setSet5P2] = useState<string>('');
 
-  // Beküldő adatai
-  const [submitterName, setSubmitterName] = useState<string>('');
-  const [comment, setComment] = useState<string>('');
-
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // Kapcsolódó liga kiválasztásánál módosulnak a választható meccsek és játékosok
   const activeLeague = leagues.find(l => l.id === selectedLeagueId);
-  
-  // Tervezett meccsek listája az adott ligában
   const availableMatches = selectedLeagueId 
     ? matches.filter(m => m.leagueId === selectedLeagueId && m.status === 'Tervezett')
     : [];
-
-  // Játékosok listája a ligában
   const availablePlayers = activeLeague
     ? players.filter(p => activeLeague.playerIds.includes(p.id))
     : players;
+  const playerNameById = new Map(players.map(player => [player.id, player.name]));
 
-  // Meccs választás kezelése
   const handleMatchChange = (matchId: string) => {
     setSelectedMatchId(matchId);
     if (matchId !== 'custom') {
@@ -73,33 +67,33 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
       setPlayer1Id('');
       setPlayer2Id('');
     }
+    setErrorMsg(null);
   };
 
-  const getPlayerName = (id: string) => {
-    return players.find(p => p.id === id)?.name || 'Nincs kiválasztva';
+  const updateSetScore = (index: number, playerKey: 'player1' | 'player2', value: string) => {
+    setSetScores(prev =>
+      prev.map((setScore, setIndex) =>
+        setIndex === index ? { ...setScore, [playerKey]: value } : setScore,
+      ),
+    );
   };
 
-  // Dinamikus eredmény számoló (Set counts)
+  const getPlayerName = (id: string) => playerNameById.get(id) || 'Nincs kiválasztva';
+
   const calculateWinnerAndSets = (): { p1Sets: number, p2Sets: number, setsArray: SetScore[] } => {
     let p1Sets = 0;
     let p2Sets = 0;
     const setsArray: SetScore[] = [];
 
-    const processSet = (p1Str: string, p2Str: string) => {
-      const p1 = parseInt(p1Str, 10);
-      const p2 = parseInt(p2Str, 10);
+    for (const setScore of setScores) {
+      const p1 = parseInt(setScore.player1, 10);
+      const p2 = parseInt(setScore.player2, 10);
       if (!isNaN(p1) && !isNaN(p2)) {
         setsArray.push({ player1: p1, player2: p2 });
         if (p1 > p2) p1Sets++;
         if (p2 > p1) p2Sets++;
       }
-    };
-
-    processSet(set1P1, set1P2);
-    processSet(set2P1, set2P2);
-    processSet(set3P1, set3P2);
-    processSet(set4P1, set4P2);
-    processSet(set5P1, set5P2);
+    }
 
     return { p1Sets, p2Sets, setsArray };
   };
@@ -152,11 +146,7 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
     setSelectedMatchId('custom');
     setPlayer1Id('');
     setPlayer2Id('');
-    setSet1P1(''); setSet1P2('');
-    setSet2P1(''); setSet2P2('');
-    setSet3P1(''); setSet3P2('');
-    setSet4P1(''); setSet4P2('');
-    setSet5P1(''); setSet5P2('');
+    setSetScores(INITIAL_SET_SCORES);
     setSubmitterName('');
     setComment('');
     setIsSuccess(false);
@@ -244,7 +234,7 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
             1. Bajnokság kiválasztása *
           </label>
           {preselectedLeagueId ? (
-            <div className="w-full bg-red-50/50 border border-brand-red/30 rounded-xl px-4 py-3.5 text-sm font-bold text-brand-red flex justify-between items-center">
+            <div className="w-full bg-brand-red/5 border border-brand-red/20 rounded-xl px-4 py-3.5 text-sm font-bold text-brand-red flex justify-between items-center">
               <span>
                 {leagues.find(l => l.id === selectedLeagueId)?.name} – {
                   getLeagueClassLabel(selectedLeagueId)
@@ -262,6 +252,8 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
                 setSelectedMatchId('custom');
                 setPlayer1Id('');
                 setPlayer2Id('');
+                setSetScores(INITIAL_SET_SCORES);
+                setErrorMsg(null);
               }}
               className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3.5 text-sm font-medium text-gray-800 transition-colors cursor-pointer"
               required
@@ -353,7 +345,7 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
                   <label className="block text-xs font-mono font-bold uppercase text-gray-500 tracking-wider">
                     3. Szettek pontszámai (PONT-SZÁMOK pl. 11-9)*
                   </label>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-red bg-red-50 px-2 py-1 rounded-md">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-red bg-brand-red/10 px-2 py-1 rounded-md">
                     <Info className="w-3 h-3" />
                     Adjad meg a szettek pontos állását (pl. 11 és 8)
                   </span>
@@ -369,147 +361,42 @@ export default function SubmitResult({ players, leagues, matches, setView, prese
                     <span className="col-span-5 truncate text-left pl-1">{getPlayerName(player2Id)}</span>
                   </div>
 
-                  {/* Set 1 */}
-                  <div className="grid grid-cols-12 gap-2 items-center">
-                    <span className="col-span-12 sm:col-span-2 font-mono text-xs font-bold text-gray-800 pl-1 uppercase">1. Szett</span>
-                    <div className="col-span-6 sm:col-span-5 relative">
-                      <input
-                        type="number"
-                        placeholder="Pont (hazai)"
-                        min="0"
-                        value={set1P1}
-                        onChange={(e) => setSet1P1(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono font-bold"
-                        required
-                        id="set1-player1"
-                      />
-                    </div>
-                    <div className="col-span-6 sm:col-span-5 relative">
-                      <input
-                        type="number"
-                        placeholder="Pont (vendég)"
-                        min="0"
-                        value={set1P2}
-                        onChange={(e) => setSet1P2(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono font-bold"
-                        required
-                        id="set1-player2"
-                      />
-                    </div>
-                  </div>
+                  {setScores.map((setScore, index) => {
+                    const isRequiredSet = index < 3;
+                    const setNumber = index + 1;
 
-                  {/* Set 2 */}
-                  <div className="grid grid-cols-12 gap-2 items-center">
-                    <span className="col-span-12 sm:col-span-2 font-mono text-xs font-bold text-gray-800 pl-1 uppercase">2. Szett</span>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (hazai)"
-                        min="0"
-                        value={set2P1}
-                        onChange={(e) => setSet2P1(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono font-bold"
-                        required
-                        id="set2-player1"
-                      />
-                    </div>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (vendég)"
-                        min="0"
-                        value={set2P2}
-                        onChange={(e) => setSet2P2(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono font-bold"
-                        required
-                        id="set2-player2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Set 3 */}
-                  <div className="grid grid-cols-12 gap-2 items-center">
-                    <span className="col-span-12 sm:col-span-2 font-mono text-xs font-bold text-gray-800 pl-1 uppercase">3. Szett</span>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (hazai)"
-                        min="0"
-                        value={set3P1}
-                        onChange={(e) => setSet3P1(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono font-bold"
-                        required
-                        id="set3-player1"
-                      />
-                    </div>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (vendég)"
-                        min="0"
-                        value={set3P2}
-                        onChange={(e) => setSet3P2(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono font-bold"
-                        required
-                        id="set3-player2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Set 4 (Opcionális) */}
-                  <div className="grid grid-cols-12 gap-2 items-center">
-                    <span className="col-span-12 sm:col-span-2 font-mono text-xs text-gray-500 pl-1 uppercase">4. Szett <span className="text-[9px] lowercase italic">(opc.)</span></span>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (hazai)"
-                        min="0"
-                        value={set4P1}
-                        onChange={(e) => setSet4P1(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono"
-                        id="set4-player1"
-                      />
-                    </div>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (vendég)"
-                        min="0"
-                        value={set4P2}
-                        onChange={(e) => setSet4P2(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono"
-                        id="set4-player2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Set 5 (Opcionális) */}
-                  <div className="grid grid-cols-12 gap-2 items-center">
-                    <span className="col-span-12 sm:col-span-2 font-mono text-xs text-gray-500 pl-1 uppercase">5. Szett <span className="text-[9px] lowercase italic">(opc.)</span></span>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (hazai)"
-                        min="0"
-                        value={set5P1}
-                        onChange={(e) => setSet5P1(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono"
-                        id="set5-player1"
-                      />
-                    </div>
-                    <div className="col-span-6 sm:col-span-5">
-                      <input
-                        type="number"
-                        placeholder="Pont (vendég)"
-                        min="0"
-                        value={set5P2}
-                        onChange={(e) => setSet5P2(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono"
-                        id="set5-player2"
-                      />
-                    </div>
-                  </div>
-
+                    return (
+                      <div key={setNumber} className="grid grid-cols-12 gap-2 items-center">
+                        <span className={`col-span-12 sm:col-span-2 font-mono pl-1 uppercase ${isRequiredSet ? 'text-xs font-bold text-gray-800' : 'text-xs text-gray-500'}`}>
+                          {setNumber}. Szett {!isRequiredSet && <span className="text-[9px] lowercase italic">(opc.)</span>}
+                        </span>
+                        <div className="col-span-6 sm:col-span-5">
+                          <input
+                            type="number"
+                            placeholder="Pont (hazai)"
+                            min="0"
+                            value={setScore.player1}
+                            onChange={(e) => updateSetScore(index, 'player1', e.target.value)}
+                            className={`w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono ${isRequiredSet ? 'font-bold' : ''}`}
+                            required={isRequiredSet}
+                            id={`set${setNumber}-player1`}
+                          />
+                        </div>
+                        <div className="col-span-6 sm:col-span-5">
+                          <input
+                            type="number"
+                            placeholder="Pont (vendég)"
+                            min="0"
+                            value={setScore.player2}
+                            onChange={(e) => updateSetScore(index, 'player2', e.target.value)}
+                            className={`w-full bg-gray-50 border border-gray-200 focus:border-brand-red focus:ring-1 focus:ring-brand-red rounded-xl px-4 py-3 text-sm text-center font-mono ${isRequiredSet ? 'font-bold' : ''}`}
+                            required={isRequiredSet}
+                            id={`set${setNumber}-player2`}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Automatikus visszajelzés szettarányról */}

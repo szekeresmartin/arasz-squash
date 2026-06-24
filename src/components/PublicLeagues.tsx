@@ -14,6 +14,15 @@ interface PublicLeaguesProps {
   initialSubTab?: string;
 }
 
+const LEAGUE_TABS = [
+  { id: 'tabella', name: 'Tabella', icon: Trophy },
+  { id: 'eredmenyek', name: 'Eredmények', icon: FileText },
+  { id: 'sorsolas', name: 'Sorsolás', icon: Calendar },
+  { id: 'eredmeny_bekuldese', name: 'Eredmény beküldése', icon: Send },
+  { id: 'jatekosok', name: 'Játékosok', icon: Users },
+  { id: 'szabalyok', name: 'Szabályok', icon: Star },
+] as const;
+
 export default function PublicLeagues({
   players,
   leagues,
@@ -39,7 +48,8 @@ export default function PublicLeagues({
     }
   };
 
-  const getPlayerName = (id: string) => players.find(p => p.id === id)?.name || 'Ismeretlen';
+  const playerNameById = new Map(players.map(player => [player.id, player.name]));
+  const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen';
 
   const currentLeague = leagues.find(l => l.id === selectedLeagueId);
 
@@ -54,21 +64,25 @@ export default function PublicLeagues({
   const standings: Standing[] = currentLeague
     ? calculateStandings(currentLeaguePlayers, currentLeagueMatches, currentLeagueResults)
     : [];
+  const standingsByPlayerId = new Map(standings.map(standing => [standing.playerId, standing]));
+  const currentLeagueMatchById = new Map(currentLeagueMatches.map(match => [match.id, match]));
 
-  // Fordulók szerinti csoportosítás
-  const roundsMap: Record<number, Match[]> = {};
-  currentLeagueMatches.forEach(m => {
-    if (!roundsMap[m.round]) {
-      roundsMap[m.round] = [];
-    }
-    roundsMap[m.round].push(m);
+  const roundsMap = new Map<number, Match[]>();
+  currentLeagueMatches.forEach((match) => {
+    const roundMatches = roundsMap.get(match.round) ?? [];
+    roundMatches.push(match);
+    roundsMap.set(match.round, roundMatches);
   });
-  const roundNumbers = Object.keys(roundsMap).map(Number).sort((a, b) => a - b);
+  const roundNumbers = [...roundsMap.keys()].sort((a, b) => a - b);
 
-  // Játékosok lekérése a kiválasztott ligában
   const activePlayers = currentLeague
-    ? players.filter(p => currentLeague.playerIds.includes(p.id))
+    ? currentLeague.playerIds
+        .map(playerId => currentLeaguePlayers.find(player => player.id === playerId))
+        .filter((player): player is Player => Boolean(player))
     : [];
+  const sortedApprovedLeagueResults = approvedLeagueResults
+    .slice()
+    .sort((a, b) => (currentLeagueMatchById.get(a.matchId)?.round ?? 0) - (currentLeagueMatchById.get(b.matchId)?.round ?? 0));
 
   if (!selectedLeagueId || !currentLeague) {
     // ----------------------------------------------------
@@ -148,7 +162,7 @@ export default function PublicLeagues({
               <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-gray-900">
                 {currentLeague.name}
               </h1>
-              <span className="text-xs font-mono bg-red-50 text-brand-red font-bold px-2.5 py-0.5 rounded-md border border-red-100">
+              <span className="text-xs font-mono bg-brand-red/10 text-brand-red font-bold px-2.5 py-0.5 rounded-md border border-brand-red/20">
                 {getLeagueClassLabel(selectedLeagueId || currentLeague.id)}
               </span>
               <span className="text-xs font-mono bg-emerald-50 text-emerald-700 font-bold px-2.5 py-0.5 rounded-md border border-emerald-150">
@@ -172,14 +186,7 @@ export default function PublicLeagues({
 
       {/* Részletező Tab gombok */}
       <div className="flex overflow-x-auto pb-1 border-b border-gray-150 gap-2 scrollbar-none" id="league-tab-navigation">
-        {[
-          { id: 'tabella', name: 'Tabella', icon: Trophy },
-          { id: 'eredmenyek', name: 'Eredmények', icon: FileText },
-          { id: 'sorsolas', name: 'Sorsolás', icon: Calendar },
-          { id: 'eredmeny_bekuldese', name: 'Eredmény beküldése', icon: Send },
-          { id: 'jatekosok', name: 'Játékosok', icon: Users },
-          { id: 'szabalyok', name: 'Szabályok', icon: Star },
-        ].map((tab) => {
+        {LEAGUE_TABS.map((tab) => {
           const isSelected = activeTab === tab.id;
           return (
             <button
@@ -187,7 +194,7 @@ export default function PublicLeagues({
               onClick={() => navigateToTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all whitespace-nowrap rounded-t-lg ${
                 isSelected
-                  ? 'border-brand-red text-brand-red bg-red-50/30 shadow-[inset_0_-1px_0_0_rgba(163,0,0,0.08)]'
+                  ? 'border-brand-red text-brand-red bg-brand-red/5 shadow-[inset_0_-1px_0_0_rgba(0,140,145,0.08)]'
                   : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
               }`}
               id={`tab-btn-${tab.id}`}
@@ -319,7 +326,7 @@ export default function PublicLeagues({
             </div>
           ) : (
             roundNumbers.map((roundNum) => {
-              const roundMatches = roundsMap[roundNum];
+              const roundMatches = roundsMap.get(roundNum) ?? [];
               return (
                 <div key={roundNum} className="bg-white border border-gray-150 rounded-2xl overflow-hidden shadow-xs">
                   <div className="bg-gray-50 border-b border-gray-150 px-6 py-4 flex justify-between items-center">
@@ -457,15 +464,9 @@ export default function PublicLeagues({
                 Még nincs jóváhagyott eredmény ebben a ligában.
               </div>
             ) : (
-              approvedLeagueResults
-                .slice()
-                .sort((a, b) => {
-                  const matchA = currentLeagueMatches.find(match => match.id === a.matchId);
-                  const matchB = currentLeagueMatches.find(match => match.id === b.matchId);
-                  return (matchA?.round ?? 0) - (matchB?.round ?? 0);
-                })
+              sortedApprovedLeagueResults
                 .map((result) => {
-                  const match = currentLeagueMatches.find(item => item.id === result.matchId);
+                  const match = currentLeagueMatchById.get(result.matchId);
                   const p1Won = result.normalizedSetsWon > result.normalizedSetsLost;
 
                   return (
@@ -492,7 +493,7 @@ export default function PublicLeagues({
 
                       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-150">
                       <div className="text-[10px] font-mono text-gray-400">
-                        {result.sourceCells.join(' • ')}
+                        {result.sourceCells.length > 0 ? result.sourceCells.join(' • ') : 'Kézi import'}
                       </div>
 
                       <div className="bg-gray-100 border text-gray-800 text-sm font-mono font-bold px-3.5 py-1.5 rounded-lg">
@@ -517,12 +518,12 @@ export default function PublicLeagues({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {activePlayers.map((player) => {
-              const standing = standings.find(s => s.playerId === player.id);
+              const standing = standingsByPlayerId.get(player.id);
               return (
                 <div key={player.id} className="border border-gray-200/80 rounded-xl p-4 bg-gray-50/20 hover:border-brand-red transition-all flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <div className="bg-red-50 text-brand-red p-2.5 rounded-lg">
+                      <div className="bg-brand-red/10 text-brand-red p-2.5 rounded-lg">
                         <Users className="w-4 h-4" />
                       </div>
                       <div>
@@ -574,7 +575,7 @@ export default function PublicLeagues({
               {currentLeague.rules}
             </p>
             
-            <div className="bg-red-50/50 rounded-xl p-4 border border-red-50 text-xs text-slate-700 space-y-2 mt-6">
+            <div className="bg-brand-red/5 rounded-xl p-4 border border-brand-red/10 text-xs text-slate-700 space-y-2 mt-6">
               <h5 className="font-mono font-bold uppercase tracking-wider text-brand-red flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4" />
                 Mérkőzés-bejelentési protokoll
