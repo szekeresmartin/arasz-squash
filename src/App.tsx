@@ -11,6 +11,7 @@ import {
   DEFAULT_MATCHES,
   DEFAULT_RESULTS,
   DEFAULT_SPONSORS,
+  normalizeSponsors,
   getLeagueBySlug,
   getLeagueSlug,
 } from './data';
@@ -111,7 +112,7 @@ export default function App() {
   const [leagues, setLeagues] = useState<League[]>(cleanedPersistedState?.leagues ?? DEFAULT_LEAGUES);
   const [matches, setMatches] = useState<Match[]>(cleanedPersistedState?.matches ?? DEFAULT_MATCHES);
   const [results, setResults] = useState<Result[]>(cleanedPersistedState?.results ?? DEFAULT_RESULTS);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(cleanedPersistedState?.sponsors ?? DEFAULT_SPONSORS);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(normalizeSponsors(cleanedPersistedState?.sponsors ?? DEFAULT_SPONSORS));
 
   const [currentView, setCurrentView] = useState<'home' | 'leagues' | 'rules' | 'admin'>('home');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
@@ -483,7 +484,6 @@ export default function App() {
     <div
       className="min-h-dvh bg-brand-light flex flex-col"
       id="app-wrapper"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
     >
       <Header 
         currentView={currentView} 

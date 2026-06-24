@@ -65,6 +65,19 @@ export default function PublicLeagues({
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen';
 
   const currentLeague = leagues.find(l => l.id === selectedLeagueId);
+  const formatStandingName = (fullName: string) => {
+    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length <= 1) {
+      return { mobile: fullName, desktop: fullName };
+    }
+
+    const [firstName, ...rest] = parts;
+    const surname = rest.join(' ');
+    return {
+      mobile: `${firstName.charAt(0).toUpperCase()}. ${surname}`,
+      desktop: fullName,
+    };
+  };
 
   const currentLeaguePlayers = currentLeague
     ? players.filter(player => player.leagueId === currentLeague.id)
@@ -233,18 +246,18 @@ export default function PublicLeagues({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] text-left" id="standings-table">
+            <table className="w-full min-w-full sm:min-w-[920px] text-left table-fixed sm:table-auto" id="standings-table">
               <thead>
-                <tr className="border-b border-gray-200 text-xs font-mono font-bold uppercase tracking-wider text-gray-400 bg-gray-50">
-                  <th className="py-3.5 px-4 text-center w-12">Hely</th>
-                  <th className="py-3.5 px-4">Játékos</th>
-                  <th className="py-3.5 px-4 text-center">Meccsek</th>
-                  <th className="py-3.5 px-4 text-center">Gy - V</th>
-                  <th className="py-3.5 px-4 text-center hidden sm:table-cell">Nyert Szett</th>
-                  <th className="py-3.5 px-4 text-center hidden sm:table-cell">Vesztett Szett</th>
-                  <th className="py-3.5 px-4 text-center hidden md:table-cell">Szettkülönbség</th>
-                  <th className="py-3.5 px-4 text-center">Pont</th>
-                  <th className="py-3.5 px-4 text-right">Forma</th>
+                <tr className="border-b border-gray-200 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-gray-400 bg-gray-50">
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-center w-11 sm:w-12">H</th>
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-left">Játékos</th>
+                  <th className="hidden sm:table-cell py-2 sm:py-3.5 px-2 sm:px-4 text-center w-14 sm:w-auto">M</th>
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-center w-14 sm:w-auto">Gy-V</th>
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-center hidden sm:table-cell">Nyert Szett</th>
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-center hidden sm:table-cell">Vesztett Szett</th>
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-center hidden md:table-cell">Szettkülönbség</th>
+                  <th className="py-2 sm:py-3.5 px-2 sm:px-4 text-center w-14 sm:w-auto">P</th>
+                  <th className="hidden sm:table-cell py-2 sm:py-3.5 px-2 sm:px-4 text-right w-20 sm:w-auto">F</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -252,9 +265,9 @@ export default function PublicLeagues({
                   const diff = standing.setDifference;
 
                   return (
-                    <tr key={standing.playerId} className="hover:bg-gray-50/50 transition-colors text-sm">
-                      <td className="py-4 px-4 text-center font-mono font-bold">
-                        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs ${
+                    <tr key={standing.playerId} className="hover:bg-gray-50/50 transition-colors text-[12px] sm:text-sm">
+                      <td className="py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono font-bold">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full text-[10px] sm:text-xs ${
                           index === 0
                             ? 'bg-yellow-100 text-yellow-800'
                             : index === 1
@@ -267,45 +280,53 @@ export default function PublicLeagues({
                         </span>
                       </td>
 
-                      <td className="py-4 px-4 font-semibold text-gray-900">
-                        {standing.playerName}
+                      <td className="py-2.5 sm:py-4 px-2 sm:px-4 font-semibold text-gray-900 min-w-0">
+                        {(() => {
+                          const displayName = formatStandingName(standing.playerName);
+                          return (
+                            <span className="block overflow-hidden whitespace-nowrap text-ellipsis">
+                              <span className="sm:hidden">{displayName.mobile}</span>
+                              <span className="hidden sm:inline">{displayName.desktop}</span>
+                            </span>
+                          );
+                        })()}
                       </td>
 
-                      <td className="py-4 px-4 text-center font-mono font-semibold text-gray-700">
+                      <td className="hidden sm:table-cell py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono font-semibold text-gray-700">
                         {standing.matchesPlayed}
                       </td>
 
-                      <td className="py-4 px-4 text-center font-mono text-gray-600">
+                      <td className="py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono text-gray-600">
                         <span className="text-emerald-600 font-semibold">{standing.wins}</span>
                         <span className="text-gray-300 px-1">/</span>
                         <span className="text-red-500">{standing.losses}</span>
                       </td>
 
-                      <td className="py-4 px-4 text-center font-mono text-gray-500 hidden sm:table-cell">
+                      <td className="py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono text-gray-500 hidden sm:table-cell">
                         {standing.setsWon}
                       </td>
 
-                      <td className="py-4 px-4 text-center font-mono text-gray-500 hidden sm:table-cell">
+                      <td className="py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono text-gray-500 hidden sm:table-cell">
                         {standing.setsLost}
                       </td>
 
-                      <td className={`py-4 px-4 text-center font-mono hidden md:table-cell font-medium ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                      <td className={`py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono hidden md:table-cell font-medium ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-gray-400'}`}>
                         {diff > 0 ? `+${diff}` : diff}
                       </td>
 
-                      <td className="py-4 px-4 text-center font-mono font-extrabold text-brand-red text-base">
+                      <td className="py-2.5 sm:py-4 px-2 sm:px-4 text-center font-mono font-extrabold text-brand-red text-sm sm:text-base">
                         {standing.basePoints}
                       </td>
 
-                      <td className="py-4 px-4">
-                        <div className="flex justify-end gap-1">
+                      <td className="hidden sm:table-cell py-2.5 sm:py-4 px-2 sm:px-4">
+                        <div className="flex justify-end gap-0.5 sm:gap-1">
                           {standing.form.length === 0 ? (
-                            <span className="text-xs text-gray-450 font-mono">-</span>
+                            <span className="text-[10px] sm:text-xs text-gray-450 font-mono">-</span>
                           ) : (
                             standing.form.map((res, i) => (
                               <span
                                 key={i}
-                                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-mono font-bold text-white ${
+                                className={`inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[8px] sm:text-[9px] font-mono font-bold text-white ${
                                   res === 'W' ? 'bg-emerald-500' : 'bg-red-500'
                                 }`}
                                 title={res === 'W' ? 'Győzelem' : 'Vereség'}

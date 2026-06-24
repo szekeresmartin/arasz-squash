@@ -1,12 +1,26 @@
 import React from 'react';
 import { Sponsor } from '../types';
+import { DEFAULT_SPONSORS } from '../data';
 
 interface SponsorBarProps {
   sponsors: Sponsor[];
 }
 
 export default function SponsorBar({ sponsors }: SponsorBarProps) {
-  const activeSponsors = sponsors.filter(s => s.isActive);
+  const sponsorById = new Map(sponsors.map((sponsor) => [sponsor.id, sponsor] as const));
+  const displaySponsors = DEFAULT_SPONSORS.map((defaultSponsor) => {
+    const persistedSponsor = sponsorById.get(defaultSponsor.id);
+
+    if (!persistedSponsor) {
+      return defaultSponsor;
+    }
+
+    return {
+      ...persistedSponsor,
+      ...defaultSponsor,
+      isActive: true,
+    };
+  });
 
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white border-y border-gray-100 py-12 sm:py-14 px-4 sm:px-6" id="partners">
@@ -18,7 +32,7 @@ export default function SponsorBar({ sponsors }: SponsorBarProps) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 md:gap-6 items-center">
-          {activeSponsors.map((sponsor) => (
+          {displaySponsors.map((sponsor) => (
             <a
               key={sponsor.id}
               href={sponsor.websiteUrl || '#'}

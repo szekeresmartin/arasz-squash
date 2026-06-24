@@ -119,6 +119,7 @@ function buildResultMap() {
 const ROUND_MAP = buildRoundMap();
 const RESULT_MAP = buildResultMap();
 const SPONSOR_LOGOS = [
+  new URL('../data/sponsors/arasz_store.jpg', import.meta.url).href,
   new URL('../data/sponsors/partner_1.svg', import.meta.url).href,
   new URL('../data/sponsors/partner_2.webp', import.meta.url).href,
   new URL('../data/sponsors/partner_3.webp', import.meta.url).href,
@@ -178,14 +179,38 @@ export const DEFAULT_MATCHES: Match[] = GENERATED_MATCHES.map((match) => {
 });
 
 export const DEFAULT_SPONSORS: Sponsor[] = [
-  { id: 's1', name: 'AdProTech', logoText: 'AdProTech', logoPath: SPONSOR_LOGOS[0], colorHex: 'from-blue-600 to-cyan-500', websiteUrl: 'https://adprotech.hu', isActive: true },
-  { id: 's2', name: 'Csodashop.hu', logoText: 'Csodashop.hu', logoPath: SPONSOR_LOGOS[1], colorHex: 'from-amber-500 to-orange-600', websiteUrl: 'https://csodashop.hu', isActive: true },
-  { id: 's3', name: 'Happy Fagyi', logoText: 'Happy Fagyi 🍦', logoPath: SPONSOR_LOGOS[2], colorHex: 'from-pink-500 to-rose-400', websiteUrl: 'https://happyfagyi.hu', isActive: true },
-  { id: 's4', name: 'Kovácsbusz', logoText: 'Kovácsbusz 🚌', logoPath: SPONSOR_LOGOS[3], colorHex: 'from-emerald-600 to-teal-500', websiteUrl: 'https://kovacsbusz.hu', isActive: true },
-  { id: 's5', name: 'Rolling Kft. Szombathely', logoText: 'Rolling Kft. Szombathely', logoPath: SPONSOR_LOGOS[4], colorHex: 'from-slate-700 to-slate-900', websiteUrl: 'https://rollingkft.hu', isActive: true },
-  { id: 's6', name: 'West Machine Kft.', logoText: 'West Machine', logoPath: SPONSOR_LOGOS[5], colorHex: 'from-red-600 to-orange-500', websiteUrl: 'https://westmachine.hu', isActive: true },
-  { id: 's7', name: 'martin creative studio', logoText: 'martin creative studio', logoPath: SPONSOR_LOGOS[6], colorHex: 'from-slate-950 to-gray-700', websiteUrl: 'https://martincreative.studio', isActive: true },
+  { id: 's1', name: 'Arasz Store', logoText: 'Arasz Store', logoPath: SPONSOR_LOGOS[0], colorHex: 'from-teal-600 to-cyan-500', websiteUrl: 'https://araszstore.hu/', isActive: true },
+  { id: 's2', name: 'AdProTech', logoText: 'AdProTech', logoPath: SPONSOR_LOGOS[1], colorHex: 'from-blue-600 to-cyan-500', websiteUrl: 'https://www.adprotech.hu/', isActive: true },
+  { id: 's3', name: 'Csodashop.hu', logoText: 'Csodashop.hu', logoPath: SPONSOR_LOGOS[2], colorHex: 'from-amber-500 to-orange-600', websiteUrl: 'https://csodashop.hu', isActive: true },
+  { id: 's4', name: 'Happy Fagyi', logoText: 'Happy Fagyi 🍦', logoPath: SPONSOR_LOGOS[3], colorHex: 'from-pink-500 to-rose-400', websiteUrl: 'https://happyfagyi.hu', isActive: true },
+  { id: 's5', name: 'Kovácsbusz', logoText: 'Kovácsbusz 🚌', logoPath: SPONSOR_LOGOS[4], colorHex: 'from-emerald-600 to-teal-500', websiteUrl: 'https://kovacsbusz.hu', isActive: true },
+  { id: 's6', name: 'Rolling Kft. Szombathely', logoText: 'Rolling Kft. Szombathely', logoPath: SPONSOR_LOGOS[5], colorHex: 'from-slate-700 to-slate-900', websiteUrl: 'https://rollingkft.hu', isActive: true },
+  { id: 's7', name: 'West Machine Kft.', logoText: 'West Machine', logoPath: SPONSOR_LOGOS[6], colorHex: 'from-red-600 to-orange-500', websiteUrl: 'https://westmachine.hu', isActive: true },
+  { id: 's8', name: 'martin creative studio', logoText: 'martin creative studio', logoPath: SPONSOR_LOGOS[7], colorHex: 'from-slate-950 to-gray-700', websiteUrl: 'https://martincreative.studio', isActive: true },
 ];
+
+const DEFAULT_SPONSOR_IDS = new Set(DEFAULT_SPONSORS.map((sponsor) => sponsor.id));
+
+export function normalizeSponsors(sponsors: Sponsor[]): Sponsor[] {
+  const sponsorById = new Map(sponsors.map((sponsor) => [sponsor.id, sponsor] as const));
+  const normalizedDefaults = DEFAULT_SPONSORS.map((defaultSponsor) => {
+    const persistedSponsor = sponsorById.get(defaultSponsor.id);
+
+    if (!persistedSponsor) {
+      return defaultSponsor;
+    }
+
+    return {
+      ...persistedSponsor,
+      ...defaultSponsor,
+      isActive: true,
+    };
+  });
+
+  const extraSponsors = sponsors.filter((sponsor) => !DEFAULT_SPONSOR_IDS.has(sponsor.id));
+
+  return [...normalizedDefaults, ...extraSponsors];
+}
 
 export const LEAGUE_ROUTE_META = GENERATED_LEAGUES.map((league) => ({
   id: league.id,
