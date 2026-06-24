@@ -76,7 +76,7 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
           <span className="bg-brand-red/10 text-brand-red font-mono font-bold text-xs px-2.5 py-1 rounded-md uppercase tracking-wider w-fit">
             Válassz bajnokságot
           </span>
-          <h2 className="text-3xl font-display font-extrabold text-gray-900">Bajnoki osztályok</h2>
+          <h2 className="text-3xl font-display font-extrabold text-gray-900">Bajnokságok</h2>
           <p className="text-sm text-gray-500 font-sans max-w-2xl">
             Az öt liga közül válassz, majd nyisd meg a részletes tabellát és a hozzá tartozó sorsolást.
           </p>
