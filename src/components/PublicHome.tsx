@@ -1,18 +1,52 @@
 import React from 'react';
-import { League, Match } from '../types';
-import { Trophy, Calendar, CheckSquare, ArrowRight } from 'lucide-react';
+import { League, Match, Player, Result } from '../types';
+import { Trophy, Calendar, CheckSquare, ArrowRight, Newspaper } from 'lucide-react';
 import { getLeagueClassLabel } from '../data';
 
 interface PublicHomeProps {
+  players: Player[];
   leagues: League[];
   matches: Match[];
+  results: Result[];
   setView: (view: 'home' | 'leagues' | 'rules' | 'history' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
 }
 
-export default function PublicHome({ leagues, matches, setView }: PublicHomeProps) {
+export default function PublicHome({ players, leagues, matches, results, setView }: PublicHomeProps) {
   const activeLeagues = leagues.filter(l => l.isActive).slice(0, 5);
   const plannedMatchesCount = matches.filter(m => m.status === 'Tervezett').length;
   const completedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
+  const playerNameById = new Map(players.map(player => [player.id, player.name]));
+  const featuredResultIds = [
+    'result-league-d-7-8-bogn-r-barna-g-sp-r-j-lia',
+    'result-league-e-7-8-szekeres-martin-n-meh-bal-zs',
+    'result-league-c-2-3-t-th-b-lint-b-rzs-nyi-bal-zs',
+  ] as const;
+
+  const resultsById = new Map(results.map(result => [result.id, result]));
+  const featuredResults = featuredResultIds
+    .map((resultId) => resultsById.get(resultId))
+    .filter((result): result is Result => Boolean(result));
+
+  const latestResults = featuredResults.length > 0
+    ? featuredResults
+    : results
+        .map((result, index) => ({
+          result,
+          index,
+          timestamp: result.importedAt ? Date.parse(result.importedAt) : 0,
+        }))
+        .sort((a, b) => {
+          if (b.timestamp !== a.timestamp) {
+            return b.timestamp - a.timestamp;
+          }
+
+          return b.index - a.index;
+        })
+        .slice(0, 3)
+        .map(item => item.result);
+
+  const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen játékos';
+  const getLeagueName = (leagueId: string) => `${leagueId.split('-').pop()?.toUpperCase() || leagueId} liga`;
 
   return (
     <div className="space-y-12 pb-16 animate-fadeIn bg-radial-pattern">
@@ -37,6 +71,63 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
 
         <div className="hidden lg:block absolute -right-12 -bottom-12 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl"></div>
         <div className="hidden md:block absolute right-16 top-1/2 -translate-y-1/2 opacity-15 border-[12px] border-white/20 w-48 h-48 rounded-full"></div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200 bg-white/95 p-6 sm:p-8 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-brand-red/10 px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-[0.24em] text-brand-red">
+              <Newspaper className="h-3.5 w-3.5" />
+              Friss hírek
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-slate-950">
+              Legutóbbi eredmények
+            </h2>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {latestResults.length > 0 ? (
+            latestResults.map((result) => (
+              <article
+                key={result.id}
+                className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-red/30 hover:bg-white"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-3">
+                    <span className="inline-flex w-fit items-center gap-2 rounded-full bg-brand-red/10 px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-brand-red">
+                      {getLeagueClassLabel(result.leagueId)}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-950 leading-tight">
+                        {getPlayerName(result.player1Id)} - {getPlayerName(result.player2Id)}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="min-w-[84px] self-stretch rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm flex flex-col items-center justify-center">
+                    <p className="text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-slate-400">
+                      Eredmény
+                    </p>
+                    <p className="mt-1 text-3xl font-display font-extrabold text-brand-red leading-none">
+                      {result.normalizedSetsWon}:{result.normalizedSetsLost}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3 text-xs text-slate-500">
+                  <span className="inline-flex items-center gap-1.5 font-mono font-semibold uppercase tracking-[0.18em] text-slate-400 group-hover:text-brand-red">
+                    {getLeagueName(result.leagueId)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="lg:col-span-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-sm text-slate-500">
+              Jelenleg nincs megjeleníthető eredmény.
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

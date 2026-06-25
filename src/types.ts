@@ -86,6 +86,10 @@ export interface Result {
   status: ResultStatus;
   playedOnCourt?: boolean;
   isForfeit?: boolean;
+  importedAt?: string;
+  source?: string;
+  sourceReference?: string;
+  normalizedToken?: string;
 }
 
 export interface Sponsor {

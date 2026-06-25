@@ -251,6 +251,10 @@ export default function App() {
     } catch {
       // fallback ha iframe-beli biztonság korlátozza
     }
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
   };
 
   const handleAddPlayer = (p: Player) => {
@@ -317,6 +321,8 @@ export default function App() {
   };
 
   const buildApprovedResult = (match: Match, score: MatchScore): Result => {
+    const nowIso = new Date().toISOString();
+
     return {
       id: match.resultId || `r_${match.id}`,
       leagueId: match.leagueId,
@@ -333,6 +339,7 @@ export default function App() {
       status: 'approved',
       playedOnCourt: true,
       isForfeit: false,
+      importedAt: nowIso,
     };
   };
 
@@ -502,8 +509,10 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-10 sm:pb-12" id="app-main">
         {currentView === 'home' && (
           <PublicHome 
+            players={players}
             leagues={leagues} 
             matches={matches} 
+            results={results}
             setView={handleSetView} 
           />
         )}
