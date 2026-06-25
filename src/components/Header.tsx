@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, Trophy, FileText, Home } from 'lucide-react';
 
 const brandLogoSrc = new URL('../../data/aos_logo.png', import.meta.url).href;
+const ontodeFeliratSrc = new URL('../../data/sponsors/ontode_felirat.png', import.meta.url).href;
 
 interface HeaderProps {
   currentView: 'home' | 'leagues' | 'rules' | 'admin';
@@ -31,14 +32,19 @@ export default function Header({ currentView, setView }: HeaderProps) {
           <button
             type="button"
             onClick={() => handleNavClick('home')} 
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
             id="brand-logo"
             aria-label="Vissza a kezdőlapra"
           >
             <img
               src={brandLogoSrc}
               alt="Arasz-Öntöde Squashliga"
-              className="h-11 sm:h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+              className="h-12 sm:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+            />
+            <img
+              src={ontodeFeliratSrc}
+              alt="Öntöde"
+              className="h-9 sm:h-14 w-auto object-contain translate-y-[1px] transition-transform duration-200 group-hover:scale-[1.01]"
             />
           </button>
 

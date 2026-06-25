@@ -37,7 +37,7 @@ export default function Rules() {
               • A bajnokság fordulókból áll, amelyekben minden játékosnak megvan a kijelölt ellenfele.
             </p>
             <p>
-              • A felek önállóan egyeztetnek időpontot a mérkőzésre, és lefoglalják a pályát az <span className="font-semibold text-gray-900">Arasz Squash Clubban</span>.
+              • A felek önállóan egyeztetnek időpontot a mérkőzésre, és lefoglalják a pályát az <span className="font-semibold text-gray-900">Öntöde Sportcentrumban</span>.
             </p>
             <p>
               • A mérkőzések lejátszására a forduló végéig van lehetőség. Amennyiben egy meccset nem játszanak le, a szervezők jogosultak dönteni a pontokról.

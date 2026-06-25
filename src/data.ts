@@ -127,6 +127,7 @@ const SPONSOR_LOGOS = [
   new URL('../data/sponsors/partner_5.webp', import.meta.url).href,
   new URL('../data/sponsors/partner_6.webp', import.meta.url).href,
   new URL('../data/sponsors/martincreative_studio.png', import.meta.url).href,
+  new URL('../data/sponsors/ontode-sportcentrum-logo.jpg', import.meta.url).href,
 ] as const;
 
 export const DEFAULT_LEAGUES: League[] = GENERATED_LEAGUES.map((league) => ({
@@ -179,6 +180,7 @@ export const DEFAULT_MATCHES: Match[] = GENERATED_MATCHES.map((match) => {
 });
 
 export const DEFAULT_SPONSORS: Sponsor[] = [
+  { id: 's9', name: 'Öntöde Sportcentrum', logoText: 'Öntöde Sportcentrum', logoPath: SPONSOR_LOGOS[8], colorHex: 'from-teal-700 to-cyan-600', websiteUrl: 'https://ontodesport.hu/', isActive: true },
   { id: 's1', name: 'Arasz Store', logoText: 'Arasz Store', logoPath: SPONSOR_LOGOS[0], colorHex: 'from-teal-600 to-cyan-500', websiteUrl: 'https://araszstore.hu/', isActive: true },
   { id: 's2', name: 'AdProTech', logoText: 'AdProTech', logoPath: SPONSOR_LOGOS[1], colorHex: 'from-blue-600 to-cyan-500', websiteUrl: 'https://www.adprotech.hu/', isActive: true },
   { id: 's3', name: 'Csodashop.hu', logoText: 'Csodashop.hu', logoPath: SPONSOR_LOGOS[2], colorHex: 'from-amber-500 to-orange-600', websiteUrl: 'https://csodashop.hu', isActive: true },
