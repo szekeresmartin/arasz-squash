@@ -6,6 +6,17 @@ interface FooterProps {
 }
 
 export default function Footer({ setView }: FooterProps) {
+  const navigateToView = (
+    view: 'home' | 'leagues' | 'rules' | 'history',
+    extra?: { leagueId?: string; subTab?: string }
+  ) => {
+    setView(view, extra);
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+  };
+
   return (
     <footer
       className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t border-gray-800"
@@ -36,7 +47,7 @@ export default function Footer({ setView }: FooterProps) {
             <ul className="space-y-2 text-sm">
               <li>
                 <button 
-                  onClick={() => setView('home')} 
+                  onClick={() => navigateToView('home')} 
                   className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
                 >
                   Kezdőlap
@@ -44,7 +55,7 @@ export default function Footer({ setView }: FooterProps) {
               </li>
               <li>
               <button 
-                  onClick={() => setView('leagues', { subTab: 'tabella' })} 
+                  onClick={() => navigateToView('leagues', { subTab: 'tabella' })} 
                   className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
                 >
                   Bajnokságok
@@ -52,7 +63,7 @@ export default function Footer({ setView }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => setView('history')} 
+                  onClick={() => navigateToView('history')} 
                   className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
                 >
                   Liga története
@@ -60,7 +71,7 @@ export default function Footer({ setView }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => setView('rules')} 
+                  onClick={() => navigateToView('rules')} 
                   className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
                 >
                   Szabályzat
