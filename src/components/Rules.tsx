@@ -836,7 +836,6 @@ export default function Rules() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-950">Tartalomjegyzék</h2>
-              <p className="text-sm text-slate-500">A PDF szerkezetét követő áttekintés.</p>
             </div>
           </div>
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
