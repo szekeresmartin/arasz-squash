@@ -6,7 +6,7 @@ import { getLeagueClassLabel } from '../data';
 interface PublicHomeProps {
   leagues: League[];
   matches: Match[];
-  setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
+  setView: (view: 'home' | 'leagues' | 'rules' | 'history' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
 }
 
 export default function PublicHome({ leagues, matches, setView }: PublicHomeProps) {
@@ -133,6 +133,13 @@ export default function PublicHome({ leagues, matches, setView }: PublicHomeProp
               id="home-open-leagues"
             >
               Összes bajnokság
+            </button>
+            <button
+              onClick={() => setView('history')}
+              className="text-xs font-mono font-bold uppercase tracking-wider text-gray-700 border border-gray-200 hover:border-teal-400 px-5 py-3 rounded-xl hover:bg-teal-50 transition-colors"
+              id="home-open-history"
+            >
+              Liga története
             </button>
           </div>
         </div>

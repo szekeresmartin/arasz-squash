@@ -2,7 +2,7 @@ import React from 'react';
 import { Trophy, FileText } from 'lucide-react';
 
 interface FooterProps {
-  setView: (view: 'home' | 'leagues' | 'rules', extra?: { leagueId?: string; subTab?: string }) => void;
+  setView: (view: 'home' | 'leagues' | 'rules' | 'history', extra?: { leagueId?: string; subTab?: string }) => void;
 }
 
 export default function Footer({ setView }: FooterProps) {
@@ -48,6 +48,14 @@ export default function Footer({ setView }: FooterProps) {
                   className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
                 >
                   Bajnokságok
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => setView('history')} 
+                  className="hover:text-white transition-colors text-gray-400 hover:underline text-left cursor-pointer"
+                >
+                  Liga története
                 </button>
               </li>
               <li>

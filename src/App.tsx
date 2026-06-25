@@ -17,6 +17,7 @@ import {
 } from './data';
 
 const Rules = lazy(() => import('./components/Rules'));
+const LeagueHistory = lazy(() => import('./components/LeagueHistory'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 
 const APP_STORAGE_KEY = 'arasz-squash-state-v1';
@@ -114,7 +115,7 @@ export default function App() {
   const [results, setResults] = useState<Result[]>(cleanedPersistedState?.results ?? DEFAULT_RESULTS);
   const [sponsors, setSponsors] = useState<Sponsor[]>(normalizeSponsors(cleanedPersistedState?.sponsors ?? DEFAULT_SPONSORS));
 
-  const [currentView, setCurrentView] = useState<'home' | 'leagues' | 'rules' | 'admin'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'leagues' | 'rules' | 'history' | 'admin'>('home');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [selectedSubTab, setSelectedSubTab] = useState<string>('tabella');
 
@@ -182,6 +183,10 @@ export default function App() {
         setCurrentView('rules');
         setSelectedLeagueId(null);
         setSelectedSubTab('tabella');
+      } else if (path === '/ligatortenet' || path === '/liga-tortenet' || path === '/dijazottak') {
+        setCurrentView('history');
+        setSelectedLeagueId(null);
+        setSelectedSubTab('tabella');
       } else if (path === '/bajnoksag' || path === '/leagues' || path === '/bajnoksagok') {
         setCurrentView('leagues');
         setSelectedLeagueId(null);
@@ -210,7 +215,7 @@ export default function App() {
   }, []);
 
   const handleSetView = (
-    view: 'home' | 'leagues' | 'rules' | 'admin', 
+    view: 'home' | 'leagues' | 'rules' | 'history' | 'admin', 
     extra?: { leagueId?: string; subTab?: string }
   ) => {
     setCurrentView(view);
@@ -220,6 +225,10 @@ export default function App() {
       path = '/admin';
     } else if (view === 'rules') {
       path = '/rules';
+      setSelectedLeagueId(null);
+      setSelectedSubTab('tabella');
+    } else if (view === 'history') {
+      path = '/ligatortenet';
       setSelectedLeagueId(null);
       setSelectedSubTab('tabella');
     } else if (view === 'leagues') {
@@ -515,6 +524,12 @@ export default function App() {
         {currentView === 'rules' && (
           <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Szabályzat betöltése...</div>}>
             <Rules />
+          </Suspense>
+        )}
+
+        {currentView === 'history' && (
+          <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Liga története betöltése...</div>}>
+            <LeagueHistory />
           </Suspense>
         )}
 

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Menu, X, Trophy, FileText, Home } from 'lucide-react';
+import { Menu, X, Trophy, FileText, Home, Award } from 'lucide-react';
 
 const brandLogoSrc = new URL('../../data/aos_logo.png', import.meta.url).href;
 const ontodeFeliratSrc = new URL('../../data/sponsors/ontode_felirat.png', import.meta.url).href;
 
 interface HeaderProps {
-  currentView: 'home' | 'leagues' | 'rules' | 'admin';
-  setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
+  currentView: 'home' | 'leagues' | 'rules' | 'history' | 'admin';
+  setView: (view: 'home' | 'leagues' | 'rules' | 'history' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
 }
 
 export default function Header({ currentView, setView }: HeaderProps) {
@@ -15,10 +15,11 @@ export default function Header({ currentView, setView }: HeaderProps) {
   const navigationItems = [
     { name: 'Kezdőlap', icon: Home, view: 'home' as const },
     { name: 'Bajnokságok', icon: Trophy, view: 'leagues' as const },
+    { name: 'Liga története', icon: Award, view: 'history' as const },
     { name: 'Szabályzat', icon: FileText, view: 'rules' as const },
   ];
 
-  const handleNavClick = (view: 'home' | 'leagues' | 'rules' | 'admin') => {
+  const handleNavClick = (view: 'home' | 'leagues' | 'rules' | 'history' | 'admin') => {
     setView(view);
     setMobileMenuOpen(false);
   };

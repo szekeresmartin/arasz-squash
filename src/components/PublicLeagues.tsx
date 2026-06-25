@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, League, Match, Standing, Result } from '../types';
-import { Trophy, Calendar, Users, FileText, ArrowLeft, Star, MapPin, Eye, CheckCircle2, AlertCircle, Send } from 'lucide-react';
+import { Trophy, Calendar, Users, FileText, ArrowLeft, Star, MapPin, Eye, CheckCircle2, Send, Shield, Award, Orbit } from 'lucide-react';
 import { calculateStandings, getLeagueClassLabel } from '../data';
 import SubmitResult from './SubmitResult';
 
@@ -65,6 +65,9 @@ export default function PublicLeagues({
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen';
 
   const currentLeague = leagues.find(l => l.id === selectedLeagueId);
+  const leagueLetter = currentLeague?.id.split('-').pop()?.toUpperCase() || 'A';
+  const isALeague = leagueLetter === 'A';
+  const leagueRulesTitle = `${leagueLetter} liga szabályai`;
   const formatStandingName = (fullName: string) => {
     const parts = fullName.trim().split(/\s+/).filter(Boolean);
     if (parts.length <= 1) {
@@ -114,6 +117,23 @@ export default function PublicLeagues({
   const sortedApprovedLeagueResults = approvedLeagueResults
     .slice()
     .sort((a, b) => (currentLeagueMatchById.get(a.matchId)?.round ?? 0) - (currentLeagueMatchById.get(b.matchId)?.round ?? 0));
+
+  const matchRulesParagraphs = [
+    'Minden mérkőzés 5 szettig tart.',
+    'A mérkőzésekre a WSF (World Squash Federation) hivatalos szabályrendszere érvényes.',
+    'Minden labdamenet pontot ér (PAR11 pontozás). Egy szett 11 pontig tart, azonban 10–10-es állásnál csak kétpontos különbséggel lehet megnyerni a szettet.',
+  ];
+
+  const ballRulesParagraphs = isALeague
+    ? [
+        'Az "A" ligában alapértelmezés szerint a 2 sárga pöttyös labdát kell használni.',
+        'Ettől az alábbi esetekben lehet eltérni: ha mindkét játékos egyetért, akkor a mérkőzés piros pöttyös labdával is lejátszható.',
+        'Az 50 év feletti játékosok jogosultak kérni, hogy a mérkőzés piros pöttyös labdával kerüljön lejátszásra.',
+      ]
+    : [
+        `Az ${leagueLetter}-ligában alapértelmezés szerint az 1 piros pöttyös labdát kell használni.`,
+        'Ettől az alábbi esetekben lehet eltérni: ha mindkét játékos egyetért, akkor a mérkőzés a választott labdatípussal játszható.',
+      ];
 
   if (!selectedLeagueId || !currentLeague) {
     // ----------------------------------------------------
@@ -604,30 +624,67 @@ export default function PublicLeagues({
               <Star className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-display font-bold text-lg text-gray-900">A Ligacsoport Helyi Szabályzata</h3>
+              <h3 className="font-display font-bold text-lg text-gray-900">{leagueRulesTitle}</h3>
               <p className="text-xs text-gray-400 font-mono">Arasz-Öntöde Squashliga Szervezőség</p>
             </div>
           </div>
 
-          <div className="prose prose-sm text-gray-750 font-sans leading-relaxed space-y-4">
-            <p className="font-semibold text-gray-900">
-              {currentLeague.rules}
-            </p>
-            
-            <div className="bg-brand-red/5 rounded-xl p-4 border border-brand-red/10 text-xs text-slate-700 space-y-2 mt-6">
-              <h5 className="font-mono font-bold uppercase tracking-wider text-brand-red flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4" />
-                Mérkőzés-bejelentési protokoll
-              </h5>
-              <p>
-                1. Minden lejátszott mérkőzés után legalább az egyik fél köteles beküldeni az eredményeket a webhely "Eredmény Beküldése" fülén keresztül.
-              </p>
-              <p>
-                2. A beküldött pontszámok ellenőrzés után válnak hivatalossá.
-              </p>
-              <p>
-                3. Vita esetén a beküldő által megadott adatokat használjuk a felek megkeresésére. Kérjük, pontos adatokat adjatok meg!
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-gray-150 bg-gray-50/40 p-5 lg:col-span-2">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-brand-red/10 text-brand-red p-2.5 shrink-0">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-display font-bold text-gray-950">Mérkőzésrend</h4>
+                  <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    {leagueLetter}-liga specifikus, letisztított szabályok.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-3 text-sm text-gray-700 leading-relaxed">
+                {matchRulesParagraphs.map((line) => (
+                  <p key={line} className="leading-relaxed">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-150 bg-white p-5">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-emerald-50 text-emerald-700 p-2.5">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-display font-bold text-gray-950">Pontozási logika</h4>
+                  <p className="text-xs text-gray-500">Az arányok alapján járó pontok.</p>
+                </div>
+              </div>
+              <div className="mt-4 text-sm text-gray-700 space-y-2">
+                <p>Győzelem: 5 pont</p>
+                <p>Vereség 2/3 szett: 3 pont</p>
+                <p>Vereség 1/4 szett: 2 pont</p>
+                <p>Vereség 0/5 szett: 1 pont</p>
+                <p>Játék nélkül: 0 pont</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-150 bg-white p-5">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-amber-50 text-amber-700 p-2.5">
+                  <Orbit className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-display font-bold text-gray-950">Labdahasználat</h4>
+                  <p className="text-xs text-gray-500">{leagueLetter}-liga labdaszabályai.</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2 text-sm text-gray-700 leading-relaxed">
+                {ballRulesParagraphs.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </div>
             </div>
           </div>
         </div>
