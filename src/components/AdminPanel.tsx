@@ -47,8 +47,32 @@ export default function AdminPanel({
   // Belső navigációs fülek az adminon belül
   const [activeAdminTab, setActiveAdminTab] = useState<string>('dashboard');
 
-  const pendingSubmissions = matches.filter(m => m.status === 'Beküldve');
-  const approvedMatches = matches.filter(m => m.status === 'Jóváhagyva');
+  const pendingSubmissions = matches
+    .filter(m => m.status === 'Beküldve')
+    .slice()
+    .sort((a, b) => {
+      const aTime = a.submittedAt ? Date.parse(a.submittedAt) : 0;
+      const bTime = b.submittedAt ? Date.parse(b.submittedAt) : 0;
+
+      if (bTime !== aTime) {
+        return bTime - aTime;
+      }
+
+      return b.id.localeCompare(a.id);
+    });
+  const approvedMatches = matches
+    .filter(m => m.status === 'Jóváhagyva')
+    .slice()
+    .sort((a, b) => {
+      const aTime = a.submittedAt ? Date.parse(a.submittedAt) : 0;
+      const bTime = b.submittedAt ? Date.parse(b.submittedAt) : 0;
+
+      if (bTime !== aTime) {
+        return bTime - aTime;
+      }
+
+      return b.id.localeCompare(a.id);
+    });
   const activeLeaguesCount = leagues.filter(l => l.isActive).length;
   const playedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
   const activePlayersCount = players.length;

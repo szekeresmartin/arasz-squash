@@ -16,34 +16,22 @@ export default function PublicHome({ players, leagues, matches, results, setView
   const plannedMatchesCount = matches.filter(m => m.status === 'Tervezett').length;
   const completedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
   const playerNameById = new Map(players.map(player => [player.id, player.name]));
-  const featuredResultIds = [
-    'result-league-d-7-8-bogn-r-barna-g-sp-r-j-lia',
-    'result-league-e-7-8-szekeres-martin-n-meh-bal-zs',
-    'result-league-c-2-3-t-th-b-lint-b-rzs-nyi-bal-zs',
-  ] as const;
 
-  const resultsById = new Map(results.map(result => [result.id, result]));
-  const featuredResults = featuredResultIds
-    .map((resultId) => resultsById.get(resultId))
-    .filter((result): result is Result => Boolean(result));
+  const latestResults = results
+    .map((result, index) => ({
+      result,
+      index,
+      timestamp: result.importedAt ? Date.parse(result.importedAt) : 0,
+    }))
+    .sort((a, b) => {
+      if (b.timestamp !== a.timestamp) {
+        return b.timestamp - a.timestamp;
+      }
 
-  const latestResults = featuredResults.length > 0
-    ? featuredResults
-    : results
-        .map((result, index) => ({
-          result,
-          index,
-          timestamp: result.importedAt ? Date.parse(result.importedAt) : 0,
-        }))
-        .sort((a, b) => {
-          if (b.timestamp !== a.timestamp) {
-            return b.timestamp - a.timestamp;
-          }
-
-          return b.index - a.index;
-        })
-        .slice(0, 3)
-        .map(item => item.result);
+      return b.index - a.index;
+    })
+    .slice(0, 3)
+    .map(item => item.result);
 
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen játékos';
   const getLeagueName = (leagueId: string) => `${leagueId.split('-').pop()?.toUpperCase() || leagueId} liga`;

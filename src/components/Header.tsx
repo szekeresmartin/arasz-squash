@@ -33,19 +33,19 @@ export default function Header({ currentView, setView }: HeaderProps) {
           <button
             type="button"
             onClick={() => handleNavClick('home')} 
-            className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 max-w-[calc(100vw-5.5rem)] sm:max-w-none overflow-hidden"
             id="brand-logo"
             aria-label="Vissza a kezdőlapra"
           >
             <img
               src={brandLogoSrc}
               alt="Arasz-Öntöde Squashliga"
-              className="h-12 sm:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+              className="h-10 sm:h-16 w-auto shrink-0 object-contain transition-transform duration-200 group-hover:scale-[1.01]"
             />
             <img
               src={ontodeFeliratSrc}
               alt="Öntöde"
-              className="h-9 sm:h-14 w-auto object-contain translate-y-[1px] transition-transform duration-200 group-hover:scale-[1.01]"
+              className="h-7 sm:h-14 max-w-[9.5rem] sm:max-w-none w-auto shrink-0 object-contain translate-y-[1px] transition-transform duration-200 group-hover:scale-[1.01]"
             />
           </button>
 

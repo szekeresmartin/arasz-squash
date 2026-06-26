@@ -303,21 +303,9 @@ export default function App() {
   };
 
   const normalizeSubmittedScore = (score: MatchScore): MatchScore => {
-    if (score.player1Sets === score.player2Sets) {
-      return score;
-    }
-
-    if (score.player1Sets > score.player2Sets) {
-      return {
-        ...score,
-        player1Sets: 3,
-      };
-    }
-
-    return {
-      ...score,
-      player2Sets: 3,
-    };
+    // A beküldött eredmény már a végeredmény, ezt változatlanul kell
+    // tárolni. A validáció felül ellenőrzi, hogy pontosan 5 szett legyen.
+    return score;
   };
 
   const buildApprovedResult = (match: Match, score: MatchScore): Result => {

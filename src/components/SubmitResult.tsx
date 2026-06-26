@@ -52,8 +52,11 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
 
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Nincs kiválasztva';
 
-  const getParsedScore = () => {
-    const [player1SetsRaw, player2SetsRaw] = finalScore.split(':');
+  const selectedPlayer1Name = getPlayerName(player1Id);
+  const selectedPlayer2Name = getPlayerName(player2Id);
+
+  const getScoreParts = (score: string) => {
+    const [player1SetsRaw, player2SetsRaw] = score.split(':');
     const player1Sets = Number(player1SetsRaw);
     const player2Sets = Number(player2SetsRaw);
 
@@ -63,6 +66,12 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
 
     return { player1Sets, player2Sets };
   };
+
+  const getParsedScore = () => {
+    return getScoreParts(finalScore);
+  };
+
+  const selectedScoreParts = finalScore ? getScoreParts(finalScore) : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,15 +298,25 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
                   </label>
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-red bg-brand-red/10 px-2 py-1 rounded-md">
                     <Info className="w-3 h-3" />
-                    Csak az 5 lejátszott szett kombinációja kell
+                    A nevekhez kötve választod ki a szettarányt
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                    <p className="text-[10px] font-mono uppercase text-gray-400">Párosítás</p>
-                    <p className="font-bold text-gray-800 mt-1">{getPlayerName(player1Id)} vs {getPlayerName(player2Id)}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                    <p className="text-[10px] font-mono uppercase text-gray-400 tracking-wider">Pár</p>
+                    <div className="mt-3 space-y-3">
+                      <div className="rounded-xl bg-white border border-gray-200 px-4 py-3">
+                        <p className="text-xs font-mono uppercase text-gray-400">1. játékos</p>
+                        <p className="font-bold text-gray-900 mt-1">{selectedPlayer1Name}</p>
+                      </div>
+                      <div className="rounded-xl bg-white border border-gray-200 px-4 py-3">
+                        <p className="text-xs font-mono uppercase text-gray-400">2. játékos</p>
+                        <p className="font-bold text-gray-900 mt-1">{selectedPlayer2Name}</p>
+                      </div>
+                    </div>
                   </div>
+
                   <div className="space-y-2">
                     <label className="block text-xs font-mono font-bold uppercase text-gray-400">Szettarány</label>
                     <select
@@ -313,10 +332,47 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
                       <option value="">-- Válassz végeredményt --</option>
                       {FINAL_SCORE_OPTIONS.map((score) => (
                         <option key={score} value={score}>
-                          {score}
+                          {(() => {
+                            const parts = getScoreParts(score);
+                            if (!parts) {
+                              return score;
+                            }
+
+                            return `${selectedPlayer1Name} ${parts.player1Sets} - ${parts.player2Sets} ${selectedPlayer2Name}`;
+                          })()}
                         </option>
                       ))}
                     </select>
+
+                    <div className="rounded-2xl border border-brand-red/20 bg-brand-red/5 px-4 py-4">
+                      <p className="text-[10px] font-mono uppercase text-brand-red tracking-wider">Kiválasztott eredmény</p>
+                      {selectedScoreParts ? (
+                        <div className="mt-3 grid grid-cols-1 gap-3">
+                          <div className="flex items-center justify-between gap-3 rounded-xl bg-white border border-brand-red/10 px-4 py-3">
+                            <div>
+                              <p className="text-xs font-mono uppercase text-gray-400">1. játékos</p>
+                              <p className="font-semibold text-gray-900">{selectedPlayer1Name}</p>
+                            </div>
+                            <div className="text-lg font-display font-extrabold text-brand-red">
+                              {selectedScoreParts.player1Sets}
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-3 rounded-xl bg-white border border-brand-red/10 px-4 py-3">
+                            <div>
+                              <p className="text-xs font-mono uppercase text-gray-400">2. játékos</p>
+                              <p className="font-semibold text-gray-900">{selectedPlayer2Name}</p>
+                            </div>
+                            <div className="text-lg font-display font-extrabold text-brand-red">
+                              {selectedScoreParts.player2Sets}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-sm text-gray-500">
+                          Válassz egy végeredményt.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
