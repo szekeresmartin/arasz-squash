@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Player, League, Match, Sponsor, SetScore, MatchScore } from '../types';
+import { Player, League, Match, Sponsor, MatchScore } from '../types';
 import { 
   Trophy, Users, Calendar, CheckCircle2, XCircle, Edit3, Save, Plus, 
   Trash2, Upload, FileText, AlertTriangle, ShieldCheck, Landmark, 
@@ -10,6 +10,7 @@ interface AdminPanelProps {
   players: Player[];
   leagues: League[];
   matches: Match[];
+  approvalMatches?: Match[];
   sponsors: Sponsor[];
   onAddPlayer: (p: Player) => void;
   onUpdatePlayer: (p: Player) => void;
@@ -19,8 +20,8 @@ interface AdminPanelProps {
   onAddMatches: (m: Match[]) => void;
   onApproveMatch: (matchId: string, finalScore?: MatchScore) => void;
   onUpdateMatchSubmission: (matchId: string, finalScore: MatchScore) => void;
-  onRejectMatch: (matchId: string) => void;
-  onDeleteMatch: (matchId: string) => void;
+  onRejectMatch: (matchId: string) => Promise<void>;
+  onDeleteMatch: (matchId: string) => Promise<void>;
   onUpdateSponsor: (s: Sponsor) => void;
   onAddSponsor: (s: Sponsor) => void;
 }
@@ -29,6 +30,7 @@ export default function AdminPanel({
   players,
   leagues,
   matches,
+  approvalMatches,
   sponsors,
   onAddPlayer,
   onUpdatePlayer,
@@ -47,7 +49,9 @@ export default function AdminPanel({
   // Belső navigációs fülek az adminon belül
   const [activeAdminTab, setActiveAdminTab] = useState<string>('dashboard');
 
-  const pendingSubmissions = matches
+  const approvalSourceMatches = (approvalMatches ?? matches).filter(match => !match.id.startsWith('m_sub_'));
+
+  const pendingSubmissions = approvalSourceMatches
     .filter(m => m.status === 'Beküldve')
     .slice()
     .sort((a, b) => {
@@ -60,7 +64,7 @@ export default function AdminPanel({
 
       return b.id.localeCompare(a.id);
     });
-  const approvedMatches = matches
+  const approvedMatches = approvalSourceMatches
     .filter(m => m.status === 'Jóváhagyva')
     .slice()
     .sort((a, b) => {
@@ -74,7 +78,7 @@ export default function AdminPanel({
       return b.id.localeCompare(a.id);
     });
   const activeLeaguesCount = leagues.filter(l => l.isActive).length;
-  const playedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
+  const playedMatchesCount = approvalSourceMatches.filter(m => m.status === 'Jóváhagyva').length;
   const activePlayersCount = players.length;
 
   const getPlayerName = (id: string) => {
@@ -963,18 +967,6 @@ export default function AdminPanel({
   const [editingSubId, setEditingSubId] = useState<string | null>(null);
   const [editP1Sets, setEditP1Sets] = useState<number>(3);
   const [editP2Sets, setEditP2Sets] = useState<number>(0);
-  
-  // Szettenkénti részeredmények szerkesztése
-  const [editS1P1, setEditS1P1] = useState<string>('');
-  const [editS1P2, setEditS1P2] = useState<string>('');
-  const [editS2P1, setEditS2P1] = useState<string>('');
-  const [editS2P2, setEditS2P2] = useState<string>('');
-  const [editS3P1, setEditS3P1] = useState<string>('');
-  const [editS3P2, setEditS3P2] = useState<string>('');
-  const [editS4P1, setEditS4P1] = useState<string>('');
-  const [editS4P2, setEditS4P2] = useState<string>('');
-  const [editS5P1, setEditS5P1] = useState<string>('');
-  const [editS5P2, setEditS5P2] = useState<string>('');
 
   const handleStartEditSubmission = (match: Match) => {
     setEditingSubId(match.id);
@@ -982,46 +974,19 @@ export default function AdminPanel({
     if (score) {
       setEditP1Sets(score.player1Sets);
       setEditP2Sets(score.player2Sets);
-      // Betöltjük a szetteket
-      setEditS1P1(score.sets[0]?.player1.toString() || '');
-      setEditS1P2(score.sets[0]?.player2.toString() || '');
-      setEditS2P1(score.sets[1]?.player1.toString() || '');
-      setEditS2P2(score.sets[1]?.player2.toString() || '');
-      setEditS3P1(score.sets[2]?.player1.toString() || '');
-      setEditS3P2(score.sets[2]?.player2.toString() || '');
-      setEditS4P1(score.sets[3]?.player1.toString() || '');
-      setEditS4P2(score.sets[3]?.player2.toString() || '');
-      setEditS5P1(score.sets[4]?.player1.toString() || '');
-      setEditS5P2(score.sets[4]?.player2.toString() || '');
     }
   };
 
   const compileEditedScore = () => {
-    // Összeállítjuk a szettek tömbjét
-    const sets: SetScore[] = [];
-    const pushSet = (p1Str: string, p2Str: string) => {
-      const p1 = parseInt(p1Str, 10);
-      const p2 = parseInt(p2Str, 10);
-      if (!isNaN(p1) && !isNaN(p2)) {
-        sets.push({ player1: p1, player2: p2 });
-      }
-    };
-
-    pushSet(editS1P1, editS1P2);
-    pushSet(editS2P1, editS2P2);
-    pushSet(editS3P1, editS3P2);
-    pushSet(editS4P1, editS4P2);
-    pushSet(editS5P1, editS5P2);
-
-    if (sets.length < 3) {
-      alert('Hiba: Legalább 3 szett pontszámainak rögzítése kötelező!');
+    if (Number.isNaN(editP1Sets) || Number.isNaN(editP2Sets)) {
+      alert('Hiba: Az összesített szettek száma kötelező!');
       return null;
     }
 
     return {
       player1Sets: editP1Sets,
       player2Sets: editP2Sets,
-      sets
+      sets: []
     };
   };
 
@@ -1100,32 +1065,9 @@ export default function AdminPanel({
                         </div>
 
                         <div className="space-y-2 border-t pt-3">
-                          <span className="text-xs font-semibold text-gray-600 block mb-1">Szettenkénti pontok:</span>
-                          <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono text-gray-400">
-                            <span>1. szett</span><span>2. szett</span><span>3. szett</span><span>4. szett</span><span>5. szett</span>
-                          </div>
-                          <div className="grid grid-cols-5 gap-2">
-                            <div className="flex gap-1">
-                              <input type="number" placeholder="H" value={editS1P1} onChange={e => setEditS1P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                              <input type="number" placeholder="V" value={editS1P2} onChange={e => setEditS1P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            </div>
-                            <div className="flex gap-1">
-                              <input type="number" placeholder="H" value={editS2P1} onChange={e => setEditS2P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                              <input type="number" placeholder="V" value={editS2P2} onChange={e => setEditS2P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            </div>
-                            <div className="flex gap-1">
-                              <input type="number" placeholder="H" value={editS3P1} onChange={e => setEditS3P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                              <input type="number" placeholder="V" value={editS3P2} onChange={e => setEditS3P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            </div>
-                            <div className="flex gap-1">
-                              <input type="number" placeholder="H" value={editS4P1} onChange={e => setEditS4P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                              <input type="number" placeholder="V" value={editS4P2} onChange={e => setEditS4P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            </div>
-                            <div className="flex gap-1">
-                              <input type="number" placeholder="H" value={editS5P1} onChange={e => setEditS5P1(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                              <input type="number" placeholder="V" value={editS5P2} onChange={e => setEditS5P2(e.target.value)} className="w-1/2 text-center p-1 bg-white border text-xs" />
-                            </div>
-                          </div>
+                          <p className="text-xs text-gray-500">
+                            A szerkesztésnél csak az összesített szettek számát tartjuk meg. Szettenkénti pontokat nem rögzítünk.
+                          </p>
                         </div>
 
                         <div className="flex justify-end gap-2 pt-2">
@@ -1186,11 +1128,11 @@ export default function AdminPanel({
                             <Edit3 className="w-4 h-4" />
                             Szerkesztés
                           </button>
-                          <button onClick={() => { if (window.confirm('Biztosan elutasítod ezt a bejelentést?')) { onRejectMatch(match.id); } }} className="flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider border border-rose-100 cursor-pointer" id={`reject-${match.id}`}>
+                          <button onClick={async () => { if (window.confirm('Biztosan elutasítod ezt a bejelentést?')) { await onRejectMatch(match.id); } }} className="flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider border border-rose-100 cursor-pointer" id={`reject-${match.id}`}>
                             <XCircle className="w-4 h-4" />
                             Elutasítás
                           </button>
-                          <button onClick={() => { if (window.confirm('Biztosan törlöd ezt az eredményt?')) { onDeleteMatch(match.id); } }} className="flex items-center justify-center gap-1.5 bg-gray-900 hover:bg-black text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer" id={`delete-${match.id}`}>
+                          <button onClick={async () => { if (window.confirm('Biztosan törlöd ezt az eredményt?')) { await onDeleteMatch(match.id); } }} className="flex items-center justify-center gap-1.5 bg-gray-900 hover:bg-black text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer" id={`delete-${match.id}`}>
                             <Trash2 className="w-4 h-4" />
                             Törlés
                           </button>
@@ -1248,12 +1190,12 @@ export default function AdminPanel({
                         </div>
                       </div>
                       <div className="flex justify-end pt-4 md:pt-0">
-                        <button
-                          onClick={() => {
-                            if (window.confirm('Biztosan törlöd ezt az eredményt? Ez visszavonja a hivatalos állapotot is.')) {
-                              onDeleteMatch(match.id);
-                            }
-                          }}
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Biztosan törlöd ezt az eredményt? Ez visszavonja a hivatalos állapotot is.')) {
+                              await onDeleteMatch(match.id);
+                              }
+                            }}
                           className="flex items-center justify-center gap-1.5 bg-gray-900 hover:bg-black text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer"
                           id={`delete-approved-${match.id}`}
                         >

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PublicHome from './components/PublicHome';
@@ -12,115 +12,116 @@ import {
   DEFAULT_RESULTS,
   DEFAULT_SPONSORS,
   normalizeSponsors,
-  getLeagueBySlug,
-  getLeagueSlug,
 } from './data';
+import {
+  hydratePersistedAppState,
+  savePersistedAppState,
+  type PersistedAppState,
+} from './lib/app-state';
+import {
+  classifySubmissionError,
+  approveMatchResultOnSupabase,
+  resetMatchSubmissionOnSupabase,
+  submitMatchResultToSupabase,
+  type SubmitMatchResultOutcome,
+} from './lib/result-submissions';
+import { invalidatePublicLeagueDataCache, loadPublicLeagueData, type PublicLeagueData } from './lib/public-leagues';
+import {
+  getLeaguePath,
+  resolveViewFromPath,
+  type AppView,
+  type LeagueTab,
+} from './lib/routing';
 
 const Rules = lazy(() => import('./components/Rules'));
 const LeagueHistory = lazy(() => import('./components/LeagueHistory'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
-
-const APP_STORAGE_KEY = 'arasz-squash-state-v1';
 const TEST_LEAGUE_ID = 'league-e';
 const TEST_PLAYER_1_ID = 'player-league-e-7-szekeres-martin';
 const TEST_PLAYER_2_ID = 'player-league-e-6-kov-cs-zsolt';
 
-type PersistedAppState = {
-  players: Player[];
-  leagues: League[];
-  matches: Match[];
-  results: Result[];
-  sponsors: Sponsor[];
-};
-
-function loadPersistedAppState(): PersistedAppState | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(APP_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as { version?: number; state?: PersistedAppState } | PersistedAppState;
-    if ('version' in parsed) {
-      return parsed.version === 1 ? parsed.state ?? null : null;
-    }
-
-    return parsed as PersistedAppState;
-  } catch {
-    return null;
-  }
-}
-
-function removeTestResultArtifacts(state: PersistedAppState): PersistedAppState {
-  const matches = state.matches.filter((match) => {
-    const pairMatches =
-      match.leagueId === TEST_LEAGUE_ID &&
-      (
-        (match.player1Id === TEST_PLAYER_1_ID && match.player2Id === TEST_PLAYER_2_ID) ||
-        (match.player1Id === TEST_PLAYER_2_ID && match.player2Id === TEST_PLAYER_1_ID)
-      );
-
-    if (!pairMatches || !match.submittedScore) {
-      return true;
-    }
-
-    const is5to0 =
-      (match.submittedScore.player1Sets === 5 && match.submittedScore.player2Sets === 0) ||
-      (match.submittedScore.player1Sets === 0 && match.submittedScore.player2Sets === 5);
-
-    if (!is5to0) {
-      return true;
-    }
-
-    return false;
-  });
-
-  const results = state.results.filter((result) => {
-    const pairMatches =
-      result.leagueId === TEST_LEAGUE_ID &&
-      (
-        (result.player1Id === TEST_PLAYER_1_ID && result.player2Id === TEST_PLAYER_2_ID) ||
-        (result.player1Id === TEST_PLAYER_2_ID && result.player2Id === TEST_PLAYER_1_ID)
-      );
-
-    if (!pairMatches) {
-      return true;
-    }
-
-    const is5to0 =
-      (result.normalizedSetsWon === 5 && result.normalizedSetsLost === 0) ||
-      (result.normalizedSetsWon === 0 && result.normalizedSetsLost === 5);
-
-    return !is5to0;
-  });
-
-  return {
-    ...state,
-    matches,
-    results,
-  };
-}
-
 export default function App() {
-  const persistedState = loadPersistedAppState();
-  const cleanedPersistedState = persistedState ? removeTestResultArtifacts(persistedState) : null;
+  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
+  const [leagues, setLeagues] = useState<League[]>(DEFAULT_LEAGUES);
+  const [matches, setMatches] = useState<Match[]>(DEFAULT_MATCHES);
+  const [results, setResults] = useState<Result[]>(DEFAULT_RESULTS);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(normalizeSponsors(DEFAULT_SPONSORS));
 
-  const [players, setPlayers] = useState<Player[]>(cleanedPersistedState?.players ?? DEFAULT_PLAYERS);
-  const [leagues, setLeagues] = useState<League[]>(cleanedPersistedState?.leagues ?? DEFAULT_LEAGUES);
-  const [matches, setMatches] = useState<Match[]>(cleanedPersistedState?.matches ?? DEFAULT_MATCHES);
-  const [results, setResults] = useState<Result[]>(cleanedPersistedState?.results ?? DEFAULT_RESULTS);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(normalizeSponsors(cleanedPersistedState?.sponsors ?? DEFAULT_SPONSORS));
-
-  const [currentView, setCurrentView] = useState<'home' | 'leagues' | 'rules' | 'history' | 'admin'>('home');
+  const [currentView, setCurrentView] = useState<AppView>('home');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [selectedSubTab, setSelectedSubTab] = useState<string>('tabella');
+  const [syncStatus, setSyncStatus] = useState<'syncing' | 'ready' | 'offline'>('syncing');
+  const [hasCompletedInitialHydration, setHasCompletedInitialHydration] = useState(false);
+  const [adminActionError, setAdminActionError] = useState<string | null>(null);
+  const [publicLeagueData, setPublicLeagueData] = useState<PublicLeagueData | null>(null);
+  const [publicLeagueDataRevision, setPublicLeagueDataRevision] = useState(0);
+  const skipNextAutosaveRef = useRef(true);
+  const userMutatedBeforeHydrationRef = useRef(false);
+
+  const applyPersistedState = (persistedState: PersistedAppState) => {
+    setPlayers(persistedState.players);
+    setLeagues(persistedState.leagues);
+    setMatches(persistedState.matches);
+    setResults(persistedState.results);
+    setSponsors(normalizeSponsors(persistedState.sponsors));
+  };
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    let cancelled = false;
+
+    const hydrate = async () => {
+      const hydrated = await hydratePersistedAppState();
+      if (cancelled) {
+        return;
+      }
+
+      if (!userMutatedBeforeHydrationRef.current && hydrated.state) {
+        applyPersistedState(hydrated.state);
+      }
+
+      setSyncStatus(hydrated.source === 'remote' || hydrated.source === 'empty' ? 'ready' : 'offline');
+      setHasCompletedInitialHydration(true);
+    };
+
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const data = await loadPublicLeagueData();
+        if (cancelled) {
+          return;
+        }
+
+        setPublicLeagueData(data);
+      } catch {
+        if (!cancelled) {
+          setPublicLeagueData(null);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [publicLeagueDataRevision]);
+
+  const refreshPublicLeagueData = () => {
+    invalidatePublicLeagueDataCache();
+    setPublicLeagueDataRevision(revision => revision + 1);
+  };
+
+  useEffect(() => {
+    if (!hasCompletedInitialHydration) {
       return;
     }
 
@@ -132,80 +133,27 @@ export default function App() {
       sponsors,
     };
 
-    window.localStorage.setItem(APP_STORAGE_KEY, JSON.stringify({
-      version: 1,
-      state,
-    }));
-  }, [players, leagues, matches, results, sponsors]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !persistedState || !cleanedPersistedState) {
+    if (skipNextAutosaveRef.current) {
+      skipNextAutosaveRef.current = false;
       return;
     }
 
-    if (persistedState.matches.length !== cleanedPersistedState.matches.length || persistedState.results.length !== cleanedPersistedState.results.length) {
-      window.localStorage.setItem(APP_STORAGE_KEY, JSON.stringify({
-        version: 1,
-        state: cleanedPersistedState,
-      }));
-    }
-  }, [persistedState, cleanedPersistedState]);
+    const timeout = window.setTimeout(() => {
+      void savePersistedAppState(state);
+    }, 400);
 
-  const tabParamToState = (tab: string | null) => {
-    if (tab === 'eredmeny-bekuldese') return 'eredmeny_bekuldese';
-    if (tab === 'eredmenyek') return 'eredmenyek';
-    if (tab === 'sorsolas') return 'sorsolas';
-    if (tab === 'jatekosok') return 'jatekosok';
-    if (tab === 'szabalyok') return 'szabalyok';
-    return 'tabella';
-  };
-
-  const tabStateToParam = (tab: string) => {
-    if (tab === 'eredmeny_bekuldese') return 'eredmeny-bekuldese';
-    return tab;
-  };
-
-  const getLeaguePath = (leagueId: string, tab: string = 'tabella') => {
-    return `/bajnoksag/${getLeagueSlug(leagueId)}?tab=${tabStateToParam(tab)}`;
-  };
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [players, leagues, matches, results, sponsors, hasCompletedInitialHydration]);
 
   useEffect(() => {
     const syncViewFromLocation = () => {
       const path = window.location.pathname;
-      const search = new URLSearchParams(window.location.search);
-      const tab = tabParamToState(search.get('tab'));
-
-      if (path === '/admin' || path === '/admin/login') {
-        setCurrentView('admin');
-        setSelectedLeagueId(null);
-        setSelectedSubTab('tabella');
-      } else if (path === '/rules' || path === '/szabalyzat') {
-        setCurrentView('rules');
-        setSelectedLeagueId(null);
-        setSelectedSubTab('tabella');
-      } else if (path === '/ligatortenet' || path === '/liga-tortenet' || path === '/dijazottak') {
-        setCurrentView('history');
-        setSelectedLeagueId(null);
-        setSelectedSubTab('tabella');
-      } else if (path === '/bajnoksag' || path === '/leagues' || path === '/bajnoksagok') {
-        setCurrentView('leagues');
-        setSelectedLeagueId(null);
-        setSelectedSubTab(tab);
-      } else if (path.startsWith('/bajnoksag/')) {
-        const slug = path.split('/').filter(Boolean)[1];
-        const leagueMeta = slug ? getLeagueBySlug(slug) : undefined;
-        setCurrentView('leagues');
-        setSelectedLeagueId(leagueMeta?.id || null);
-        setSelectedSubTab(tab);
-      } else if (path === '/') {
-        setCurrentView('home');
-        setSelectedLeagueId(null);
-        setSelectedSubTab('tabella');
-      } else {
-        setCurrentView('home');
-        setSelectedLeagueId(null);
-        setSelectedSubTab('tabella');
-      }
+      const { view, selectedLeagueId: leagueId, selectedSubTab: subTab } = resolveViewFromPath(path, window.location.search);
+      setCurrentView(view);
+      setSelectedLeagueId(leagueId);
+      setSelectedSubTab(subTab);
     };
     syncViewFromLocation();
     window.addEventListener('popstate', syncViewFromLocation);
@@ -215,8 +163,8 @@ export default function App() {
   }, []);
 
   const handleSetView = (
-    view: 'home' | 'leagues' | 'rules' | 'history' | 'admin', 
-    extra?: { leagueId?: string; subTab?: string }
+    view: AppView,
+    extra?: { leagueId?: string; subTab?: LeagueTab }
   ) => {
     setCurrentView(view);
 
@@ -258,14 +206,17 @@ export default function App() {
   };
 
   const handleAddPlayer = (p: Player) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setPlayers(prev => [p, ...prev]);
   };
 
   const handleUpdatePlayer = (updated: Player) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setPlayers(prev => prev.map(p => p.id === updated.id ? updated : p));
   };
 
   const handleDeletePlayer = (id: string) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setPlayers(prev => prev.filter(p => p.id !== id));
     // Elemeltük a ligás regisztrációját is
     setLeagues(prev => prev.map(l => ({
@@ -275,18 +226,22 @@ export default function App() {
   };
 
   const handleAddLeague = (l: League) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setLeagues(prev => [...prev, l]);
   };
 
   const handleUpdateLeague = (updated: League) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setLeagues(prev => prev.map(l => l.id === updated.id ? updated : l));
   };
 
   const handleAddMatches = (newMatches: Match[]) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setMatches(prev => [...prev, ...newMatches]);
   };
 
   const handleUpdateMatchSubmission = (matchId: string, finalScore: MatchScore) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     const nowIso = new Date().toISOString();
     setMatches(prev => prev.map(match => {
       if (match.id !== matchId) {
@@ -331,15 +286,36 @@ export default function App() {
     };
   };
 
-  const handleSubmitResult = (payload: {
+  const createMatchId = (leagueId: string, player1Id: string, player2Id: string) => {
+    const league = leagues.find(item => item.id === leagueId);
+    const player1Name = players.find(player => player.id === player1Id)?.name ?? player1Id;
+    const player2Name = players.find(player => player.id === player2Id)?.name ?? player2Id;
+    const player1Index = league?.playerIds.findIndex(id => id === player1Id);
+    const player2Index = league?.playerIds.findIndex(id => id === player2Id);
+    const slug = [leagueId, (player1Index ?? -1) + 1, (player2Index ?? -1) + 1, player1Name, player2Name]
+      .join('-')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    return `match-${slug}`;
+  };
+
+  const isSyntheticCustomMatch = (match: Match) => match.id.startsWith('m_sub_');
+
+  const resetSubmittedMatch = async (match: Match) => {
+    await resetMatchSubmissionOnSupabase({ matchId: match.id });
+  };
+
+  const handleSubmitResult = async (payload: {
     leagueId: string;
     player1Id: string;
     player2Id: string;
     finalScore: MatchScore;
     submitterName: string;
     comment?: string;
-  }) => {
-    const nowIso = new Date().toISOString();
+  }): Promise<SubmitMatchResultOutcome> => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     const normalizedScore = normalizeSubmittedScore(payload.finalScore);
     const existingPlannedMatch = matches.find(match => {
       const sameLeague = match.leagueId === payload.leagueId;
@@ -349,6 +325,43 @@ export default function App() {
     });
 
     if (existingPlannedMatch) {
+      try {
+        await submitMatchResultToSupabase({
+          matchId: existingPlannedMatch.id,
+          finalScore: normalizedScore,
+          submitterName: payload.submitterName,
+          comment: payload.comment,
+        });
+      } catch (error) {
+        const submissionError = classifySubmissionError(error);
+        if (submissionError.code !== 'config' && submissionError.code !== 'network') {
+          throw submissionError;
+        }
+
+        setMatches(prev => prev.map(match => {
+          if (match.id !== existingPlannedMatch.id) {
+            return match;
+          }
+
+          return {
+            ...match,
+            status: 'Beküldve',
+            submittedScore: normalizedScore,
+            submitterName: payload.submitterName,
+            submitterContact: undefined,
+            comment: payload.comment,
+            submittedAt: new Date().toISOString(),
+            submissionType: 'planned',
+          };
+        }));
+
+        return {
+          remoteAttempted: true,
+          remoteSynced: false,
+          remoteError: submissionError.message,
+        };
+      }
+
       setMatches(prev => prev.map(match => {
         if (match.id !== existingPlannedMatch.id) {
           return match;
@@ -359,17 +372,24 @@ export default function App() {
           status: 'Beküldve',
           submittedScore: normalizedScore,
           submitterName: payload.submitterName,
+          submitterContact: undefined,
           comment: payload.comment,
-          submittedAt: nowIso,
+          submittedAt: new Date().toISOString(),
           submissionType: 'planned',
         };
       }));
-      return;
+      invalidatePublicLeagueDataCache();
+      refreshPublicLeagueData();
+
+      return {
+        remoteAttempted: true,
+        remoteSynced: true,
+      };
     }
 
     setMatches(prev => [
       {
-        id: `m_sub_${Date.now()}`,
+        id: createMatchId(payload.leagueId, payload.player1Id, payload.player2Id),
         leagueId: payload.leagueId,
         round: 0,
         player1Id: payload.player1Id,
@@ -377,15 +397,24 @@ export default function App() {
         status: 'Beküldve',
         submittedScore: normalizedScore,
         submitterName: payload.submitterName,
+        submitterContact: undefined,
         comment: payload.comment,
-        submittedAt: nowIso,
+        submittedAt: new Date().toISOString(),
         submissionType: 'custom',
       },
       ...prev,
     ]);
+    invalidatePublicLeagueDataCache();
+    refreshPublicLeagueData();
+
+    return {
+      remoteAttempted: false,
+      remoteSynced: true,
+    };
   };
 
-  const handleApproveMatch = (matchId: string, finalScoreOverride?: MatchScore) => {
+  const handleApproveMatch = async (matchId: string, finalScoreOverride?: MatchScore) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     const match = matches.find(m => m.id === matchId);
     if (!match) {
       return;
@@ -395,6 +424,44 @@ export default function App() {
     if (!approvedScore) {
       return;
     }
+
+    try {
+      await approveMatchResultOnSupabase({
+        matchId,
+        finalScore: approvedScore,
+      });
+    } catch (error) {
+      const approvalError = classifySubmissionError(error);
+      if (approvalError.code !== 'config' && approvalError.code !== 'network') {
+        setAdminActionError(`Admin jóváhagyás sikertelen: ${approvalError.message}`);
+        return;
+      }
+
+      setMatches(prev => prev.map(m => {
+        if (m.id !== matchId) {
+          return m;
+        }
+
+        return {
+          ...m,
+          status: 'Jóváhagyva',
+          submittedScore: approvedScore,
+        };
+      }));
+
+      setResults(prev => {
+        if (prev.some(result => result.matchId === matchId)) {
+          return prev;
+        }
+
+        return [buildApprovedResult({ ...match, submittedScore: approvedScore, status: 'Jóváhagyva' }, approvedScore), ...prev];
+      });
+      setAdminActionError(`Admin jóváhagyás: a Supabase jóváhagyás nem sikerült, a helyi állapot frissült. ${approvalError.message}`);
+      return;
+    }
+
+    invalidatePublicLeagueDataCache();
+    refreshPublicLeagueData();
 
     setMatches(prev => prev.map(m => {
       if (m.id !== matchId) {
@@ -417,19 +484,83 @@ export default function App() {
     });
   };
 
-  const handleRejectMatch = (matchId: string) => {
+  const handleRejectMatch = async (matchId: string): Promise<void> => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
+    setAdminActionError(null);
     const match = matches.find(m => m.id === matchId);
     if (!match) {
       return;
     }
 
-    if (match.submissionType === 'custom') {
-      setMatches(prev => prev.filter(m => m.id !== matchId));
+    const applyLocalReject = () => {
+      if (isSyntheticCustomMatch(match)) {
+        setMatches(prev => prev.filter(m => m.id !== matchId));
+        return;
+      }
+
+      setMatches(prev => prev.map(m => {
+        if (m.id === matchId) {
+          return {
+            ...m,
+            status: 'Tervezett',
+            submittedScore: undefined,
+            submitterName: undefined,
+            submitterContact: undefined,
+            comment: undefined,
+            submittedAt: undefined,
+            approvedAt: undefined,
+            approvedBy: undefined,
+            resultId: undefined,
+            submissionType: undefined,
+          };
+        }
+        return m;
+      }));
+    };
+
+    if (isSyntheticCustomMatch(match)) {
+      applyLocalReject();
       return;
     }
 
-    setMatches(prev => prev.map(m => {
-      if (m.id === matchId) {
+    try {
+      await resetSubmittedMatch(match);
+      invalidatePublicLeagueDataCache();
+      refreshPublicLeagueData();
+      applyLocalReject();
+    } catch (error) {
+      const resetError = classifySubmissionError(error);
+      if (resetError.code === 'config' || resetError.code === 'network') {
+        applyLocalReject();
+        setAdminActionError(`Admin visszavonás: a Supabase reset nem sikerült, a helyi állapot frissült. ${resetError.message}`);
+        return;
+      }
+
+      setAdminActionError(`Admin visszavonás sikertelen: ${resetError.message}`);
+    }
+  };
+
+  const handleDeleteMatch = async (matchId: string): Promise<void> => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
+    setAdminActionError(null);
+    const match = matches.find(m => m.id === matchId);
+    if (!match) {
+      return;
+    }
+
+    const applyLocalDelete = () => {
+      setResults(prev => prev.filter(result => result.matchId !== matchId));
+
+      if (isSyntheticCustomMatch(match)) {
+        setMatches(prev => prev.filter(m => m.id !== matchId));
+        return;
+      }
+
+      setMatches(prev => prev.map(m => {
+        if (m.id !== matchId) {
+          return m;
+        }
+
         return {
           ...m,
           status: 'Tervezett',
@@ -438,49 +569,43 @@ export default function App() {
           submitterContact: undefined,
           comment: undefined,
           submittedAt: undefined,
+          approvedAt: undefined,
+          approvedBy: undefined,
+          resultId: undefined,
           submissionType: undefined,
         };
-      }
-      return m;
-    }));
-  };
+      }));
+    };
 
-  const handleDeleteMatch = (matchId: string) => {
-    const match = matches.find(m => m.id === matchId);
-    if (!match) {
+    if (isSyntheticCustomMatch(match)) {
+      applyLocalDelete();
       return;
     }
 
-    setResults(prev => prev.filter(result => result.matchId !== matchId));
-
-    if (match.submissionType === 'custom' || match.status === 'Jóváhagyva') {
-      setMatches(prev => prev.filter(m => m.id !== matchId));
-      return;
-    }
-
-    setMatches(prev => prev.map(m => {
-      if (m.id !== matchId) {
-        return m;
+    try {
+      await resetSubmittedMatch(match);
+      invalidatePublicLeagueDataCache();
+      refreshPublicLeagueData();
+      applyLocalDelete();
+    } catch (error) {
+      const resetError = classifySubmissionError(error);
+      if (resetError.code === 'config' || resetError.code === 'network') {
+        applyLocalDelete();
+        setAdminActionError(`Admin törlés: a Supabase reset nem sikerült, a helyi állapot frissült. ${resetError.message}`);
+        return;
       }
 
-      return {
-        ...m,
-        status: 'Tervezett',
-        submittedScore: undefined,
-        submitterName: undefined,
-        submitterContact: undefined,
-        comment: undefined,
-        submittedAt: undefined,
-        submissionType: undefined,
-      };
-    }));
+      setAdminActionError(`Admin törlés sikertelen: ${resetError.message}`);
+    }
   };
 
   const handleAddSponsor = (s: Sponsor) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setSponsors(prev => [...prev, s]);
   };
 
   const handleUpdateSponsor = (updated: Sponsor) => {
+    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setSponsors(prev => prev.map(s => s.id === updated.id ? updated : s));
   };
 
@@ -495,15 +620,26 @@ export default function App() {
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-10 sm:pb-12" id="app-main">
+        {!hasCompletedInitialHydration && (
+          <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+            Háttérszinkronizálás folyamatban.
+          </div>
+        )}
+        {syncStatus === 'offline' && hasCompletedInitialHydration && (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Helyi mentés aktív. A Supabase-szinkron később újra elérhető lehet.
+          </div>
+        )}
+
         {currentView === 'home' && (
           <PublicHome 
             players={players}
             leagues={leagues} 
             matches={matches} 
             results={results}
-            setView={handleSetView} 
-          />
-        )}
+          setView={handleSetView} 
+        />
+      )}
 
         {currentView === 'leagues' && (
           <PublicLeagues
@@ -532,24 +668,32 @@ export default function App() {
 
         {currentView === 'admin' && (
           <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Admin felület betöltése...</div>}>
-            <AdminPanel
-              players={players}
-              leagues={leagues}
-              matches={matches}
-              sponsors={sponsors}
-              onAddPlayer={handleAddPlayer}
-              onUpdatePlayer={handleUpdatePlayer}
-              onDeletePlayer={handleDeletePlayer}
-              onAddLeague={handleAddLeague}
-              onUpdateLeague={handleUpdateLeague}
-              onAddMatches={handleAddMatches}
-              onApproveMatch={handleApproveMatch}
-              onUpdateMatchSubmission={handleUpdateMatchSubmission}
-              onRejectMatch={handleRejectMatch}
-              onDeleteMatch={handleDeleteMatch}
-              onAddSponsor={handleAddSponsor}
-              onUpdateSponsor={handleUpdateSponsor}
-            />
+            <div className="space-y-4">
+              {adminActionError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                  {adminActionError}
+                </div>
+              )}
+              <AdminPanel
+                players={players}
+                leagues={leagues}
+                matches={matches}
+                approvalMatches={publicLeagueData?.matches ?? undefined}
+                sponsors={sponsors}
+                onAddPlayer={handleAddPlayer}
+                onUpdatePlayer={handleUpdatePlayer}
+                onDeletePlayer={handleDeletePlayer}
+                onAddLeague={handleAddLeague}
+                onUpdateLeague={handleUpdateLeague}
+                onAddMatches={handleAddMatches}
+                onApproveMatch={handleApproveMatch}
+                onUpdateMatchSubmission={handleUpdateMatchSubmission}
+                onRejectMatch={handleRejectMatch}
+                onDeleteMatch={handleDeleteMatch}
+                onAddSponsor={handleAddSponsor}
+                onUpdateSponsor={handleUpdateSponsor}
+              />
+            </div>
           </Suspense>
         )}
       </main>

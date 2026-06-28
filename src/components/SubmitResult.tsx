@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Info, Send } from 'lucide-react';
 import { League, Match, MatchScore, Player } from '../types';
 import { getLeagueClassLabel } from '../data';
+import {
+  getLivePairMatchStatus,
+  type SubmitMatchResultOutcome,
+} from '../lib/result-submissions';
 
 interface SubmitResultProps {
   players: Player[];
@@ -14,7 +18,7 @@ interface SubmitResultProps {
     finalScore: MatchScore;
     submitterName: string;
     comment?: string;
-  }) => void;
+  }) => Promise<SubmitMatchResultOutcome>;
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   preselectedLeagueId?: string;
 }
@@ -30,6 +34,8 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
   const [comment, setComment] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [submissionWarning, setSubmissionWarning] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     if (preselectedLeagueId) {
@@ -37,7 +43,11 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
       setPlayer1Id('');
       setPlayer2Id('');
       setFinalScore('');
+      setSubmitterName('');
+      setComment('');
+      setIsSuccess(false);
       setErrorMsg(null);
+      setSubmissionWarning(null);
     }
   }, [preselectedLeagueId]);
 
@@ -73,9 +83,10 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
 
   const selectedScoreParts = finalScore ? getScoreParts(finalScore) : null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSubmissionWarning(null);
 
     if (!selectedLeagueId) {
       setErrorMsg('Kérjük, válaszd ki a bajnokságot!');
@@ -94,9 +105,23 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
       const reverseOrder = match.player1Id === player2Id && match.player2Id === player1Id;
       return sameOrder || reverseOrder;
     });
+
     if (samePairMatch?.status === 'Jóváhagyva' || samePairMatch?.status === 'Beküldve') {
-      setErrorMsg('Ehhez a pároshoz már van beküldött vagy jóváhagyott eredmény.');
-      return;
+      if (samePairMatch.id.startsWith('m_sub_')) {
+        setErrorMsg('Ehhez a pároshoz már van beküldött vagy jóváhagyott eredmény.');
+        return;
+      }
+
+      try {
+        const liveStatus = await getLivePairMatchStatus(selectedLeagueId, player1Id, player2Id);
+        if (liveStatus === 'submitted' || liveStatus === 'approved') {
+          setErrorMsg('Ehhez a pároshoz már van beküldött vagy jóváhagyott eredmény.');
+          return;
+        }
+      } catch {
+        setErrorMsg('Nem sikerült ellenőrizni a mérkőzés aktuális állapotát. Kérjük, próbáld újra.');
+        return;
+      }
     }
     if (!finalScore) {
       setErrorMsg('Kérjük, válaszd ki a végeredményt!');
@@ -116,23 +141,36 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
       return;
     }
 
-    onSubmitResult({
-      leagueId: selectedLeagueId,
-      player1Id,
-      player2Id,
-      finalScore: {
-        player1Sets: parsedScore.player1Sets,
-        player2Sets: parsedScore.player2Sets,
-        sets: [],
-      },
-      submitterName: submitterName.trim(),
-      comment: comment.trim() || undefined,
-    });
-    setIsSuccess(true);
+    setIsSubmitting(true);
+    try {
+      const outcome = await onSubmitResult({
+        leagueId: selectedLeagueId,
+        player1Id,
+        player2Id,
+        finalScore: {
+          player1Sets: parsedScore.player1Sets,
+          player2Sets: parsedScore.player2Sets,
+          sets: [],
+        },
+        submitterName: submitterName.trim(),
+        comment: comment.trim() || undefined,
+      });
+
+      if (outcome.remoteAttempted && !outcome.remoteSynced && outcome.remoteError) {
+        setSubmissionWarning(outcome.remoteError);
+      }
+
+      setIsSuccess(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Ismeretlen hiba történt az eredménybeküldés során.';
+      setErrorMsg(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleResetForm = () => {
-    setSelectedLeagueId('');
+    setSelectedLeagueId(preselectedLeagueId || '');
     setPlayer1Id('');
     setPlayer2Id('');
     setFinalScore('');
@@ -140,7 +178,16 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
     setComment('');
     setIsSuccess(false);
     setErrorMsg(null);
+    setSubmissionWarning(null);
   };
+
+  useEffect(() => {
+    if (!isSuccess) {
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [isSuccess]);
 
   if (isSuccess) {
     return (
@@ -168,6 +215,12 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
               {finalScore}
             </div>
           </div>
+          {submissionWarning && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs text-amber-800">
+              <p className="font-semibold">A Supabase írás nem sikerült, a helyi mentés megmaradt.</p>
+              <p className="mt-1">{submissionWarning}</p>
+            </div>
+          )}
           <p className="text-xs text-gray-400 italic">"Jóváhagyás után kerül be a hivatalos táblába és statisztikákba."</p>
         </div>
 
@@ -412,10 +465,11 @@ export default function SubmitResult({ players, leagues, matches, onSubmitResult
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-brand-red hover:bg-brand-maroon text-white font-semibold py-4 rounded-xl shadow-md transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer font-sans"
+                disabled={isSubmitting}
+                className="w-full bg-brand-red hover:bg-brand-maroon disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl shadow-md transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer font-sans"
                 id="submit-form-button"
               >
-                Mérkőzés beküldése jóváhagyásra
+                {isSubmitting ? 'Beküldés folyamatban...' : 'Mérkőzés beküldése jóváhagyásra'}
                 <Send className="w-4 h-4" />
               </button>
             </div>

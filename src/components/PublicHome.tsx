@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { League, Match, Player, Result } from '../types';
 import { Trophy, Calendar, CheckSquare, ArrowRight, Newspaper } from 'lucide-react';
 import { getLeagueClassLabel } from '../data';
+import { loadLatestPublicResults, type LatestPublicResultRow } from '../lib/public-results';
 
 interface PublicHomeProps {
   players: Player[];
@@ -16,22 +17,49 @@ export default function PublicHome({ players, leagues, matches, results, setView
   const plannedMatchesCount = matches.filter(m => m.status === 'Tervezett').length;
   const completedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
   const playerNameById = new Map(players.map(player => [player.id, player.name]));
+  const [latestPublicResults, setLatestPublicResults] = useState<LatestPublicResultRow[]>([]);
+  const [latestResultsStatus, setLatestResultsStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
-  const latestResults = results
-    .map((result, index) => ({
-      result,
-      index,
-      timestamp: result.importedAt ? Date.parse(result.importedAt) : 0,
-    }))
-    .sort((a, b) => {
-      if (b.timestamp !== a.timestamp) {
-        return b.timestamp - a.timestamp;
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLatestResultsStatus('loading');
+      try {
+        const rows = await loadLatestPublicResults();
+        if (cancelled) {
+          return;
+        }
+
+        setLatestPublicResults(rows);
+        setLatestResultsStatus('ready');
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        setLatestPublicResults([]);
+        setLatestResultsStatus('error');
       }
+    };
 
-      return b.index - a.index;
-    })
-    .slice(0, 3)
-    .map(item => item.result);
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const latestResults = useMemo(() => {
+    return latestPublicResults.map((row) => ({
+      id: row.id,
+      leagueId: row.league_id,
+      player1Id: row.player1_id,
+      player2Id: row.player2_id,
+      normalizedSetsWon: row.normalized_sets_won,
+      normalizedSetsLost: row.normalized_sets_lost,
+    }));
+  }, [latestPublicResults]);
 
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen játékos';
   const getLeagueName = (leagueId: string) => `${leagueId.split('-').pop()?.toUpperCase() || leagueId} liga`;
@@ -75,7 +103,11 @@ export default function PublicHome({ players, leagues, matches, results, setView
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {latestResults.length > 0 ? (
+          {latestResultsStatus === 'loading' ? (
+            <div className="lg:col-span-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-sm text-slate-500">
+              Legutóbbi eredmények betöltése...
+            </div>
+          ) : latestResults.length > 0 ? (
             latestResults.map((result) => (
               <article
                 key={result.id}
@@ -112,7 +144,9 @@ export default function PublicHome({ players, leagues, matches, results, setView
             ))
           ) : (
             <div className="lg:col-span-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-sm text-slate-500">
-              Jelenleg nincs megjeleníthető eredmény.
+              {latestResultsStatus === 'error'
+                ? 'A legutóbbi eredmények most nem elérhetők. Kérjük, próbáld újra később.'
+                : 'Jelenleg nincs megjeleníthető eredmény.'}
             </div>
           )}
         </div>

@@ -21,6 +21,23 @@ Vite + React + TypeScript alapú squash liga prototípus.
 
 Megjegyzés: a `netlify.toml` már benne van a projektben, így a belső útvonalak, például a `/bajnoksag/...` oldalak közvetlen megnyitással is működni fognak.
 
-## Megjegyzés
+## Supabase
 
-Az aktuális prototípushoz nem szükséges backend vagy AI API kulcs.
+A projekt már Supabase-re van kötve. Ehhez ez kell:
+
+1. Hozd létre a `public.app_state` táblát a [supabase/schema.sql](/Users/szekeresmartin/Documents/arasz-squash/supabase/schema.sql) alapján.
+2. Állítsd be a környezeti változókat:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. Netlify-on ugyanazokat az env változókat add meg a site beállításaiban.
+
+Példa a jelenlegi projektre:
+
+```text
+VITE_SUPABASE_URL=https://fnikgmsyooyxhfvvfjeh.supabase.co
+```
+
+Megjegyzés:
+- A jelenlegi implementáció közvetlenül a Supabase REST API-t használja.
+- A publikus írások működéséhez RLS policy-ket is be kell kapcsolni a schema SQL-ben.
+- Ha később erősebb jogosultságkezelés kell, érdemes külön admin auth réteget is tenni elé.

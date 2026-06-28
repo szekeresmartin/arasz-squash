@@ -5,6 +5,8 @@ export interface Player {
   order?: number;
   active?: boolean;
   sourceSheetName?: string;
+  headerCell?: string;
+  rowCell?: string;
   phone?: string;
   email?: string;
   joinDate?: string;
@@ -37,6 +39,9 @@ export interface Match {
   submitterContact?: string;
   comment?: string;
   submittedAt?: string;
+  submittedBy?: string;
+  approvedAt?: string;
+  approvedBy?: string;
   sourceCell?: string;
   reverseSourceCell?: string;
   resultId?: string;
@@ -50,9 +55,15 @@ export interface League {
   rules: string;
   isActive: boolean;
   playerIds: string[];
+  seasonId?: string;
+  sheetName?: string;
+  classLabel?: string;
+  displayOrder?: number;
+  playerCount?: number;
 }
 
 export interface Standing {
+  leagueId?: string;
   playerId: string;
   playerName: string;
   matchesPlayed: number;
@@ -87,6 +98,10 @@ export interface Result {
   playedOnCourt?: boolean;
   isForfeit?: boolean;
   importedAt?: string;
+  submittedAt?: string;
+  submittedBy?: string;
+  approvedAt?: string;
+  approvedBy?: string;
   source?: string;
   sourceReference?: string;
   normalizedToken?: string;

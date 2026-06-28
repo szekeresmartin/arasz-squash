@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Player, League, Match, Standing, Result } from '../types';
 import { Trophy, Calendar, Users, FileText, ArrowLeft, Star, MapPin, Eye, CheckCircle2, Send, Shield, Award, Orbit } from 'lucide-react';
-import { calculateStandings, getLeagueClassLabel } from '../data';
+import { calculateStandings } from '../data';
 import SubmitResult from './SubmitResult';
+import { loadPublicLeagueData, type PublicLeagueData } from '../lib/public-leagues';
+import type { SubmitMatchResultOutcome } from '../lib/result-submissions';
 
 interface PublicLeaguesProps {
   players: Player[];
@@ -20,7 +22,7 @@ interface PublicLeaguesProps {
     };
     submitterName: string;
     comment?: string;
-  }) => void;
+  }) => Promise<SubmitMatchResultOutcome>;
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   selectedLeagueId: string | null;
   initialSubTab?: string;
@@ -36,16 +38,19 @@ const LEAGUE_TABS = [
 ] as const;
 
 export default function PublicLeagues({
-  players,
-  leagues,
-  matches,
-  results,
+  players: legacyPlayers,
+  leagues: legacyLeagues,
+  matches: legacyMatches,
+  results: legacyResults,
   onSubmitResult,
   setView,
   selectedLeagueId,
   initialSubTab = 'tabella',
 }: PublicLeaguesProps) {
   const [activeTab, setActiveTab] = useState<string>(initialSubTab);
+  const [publicData, setPublicData] = useState<PublicLeagueData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Az al-fület beállítjuk ha kívülről kapunk paramétert
   useEffect(() => {
@@ -53,6 +58,48 @@ export default function PublicLeagues({
       setActiveTab(initialSubTab);
     }
   }, [initialSubTab, selectedLeagueId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLeagueData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const data = await loadPublicLeagueData();
+        if (cancelled) {
+          return;
+        }
+
+        setPublicData(data);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : 'Ismeretlen hiba történt a ligaadatok betöltésekor.';
+        setLoadError(message);
+        setPublicData(null);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadLeagueData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [legacyPlayers, legacyLeagues, legacyMatches, legacyResults]);
+
+  const players = publicData?.players ?? [];
+  const leagues = publicData?.leagues ?? [];
+  const matches = publicData?.matches ?? [];
+  const results = publicData?.results ?? [];
+  const standings = publicData?.standings ?? [];
 
   const navigateToTab = (tabId: string) => {
     setActiveTab(tabId);
@@ -92,11 +139,26 @@ export default function PublicLeagues({
   const currentLeagueResults = currentLeague ? results.filter(result => result.leagueId === currentLeague.id) : [];
   const approvedLeagueResults = currentLeagueResults.filter(result => result.status === 'approved');
 
-  const standings: Standing[] = currentLeague
-    ? calculateStandings(currentLeaguePlayers, currentLeagueMatches, currentLeagueResults)
+  const standingsByLeagueId = new Map<string, Standing[]>();
+  standings.forEach((standing) => {
+    if (!standing.leagueId) {
+      return;
+    }
+    const leagueStandings = standingsByLeagueId.get(standing.leagueId) ?? [];
+    leagueStandings.push(standing);
+    standingsByLeagueId.set(standing.leagueId, leagueStandings);
+  });
+
+  const currentLeagueStandings: Standing[] = currentLeague
+    ? standingsByLeagueId.get(currentLeague.id) ?? calculateStandings(currentLeaguePlayers, currentLeagueMatches, currentLeagueResults).map((standing) => ({
+        ...standing,
+        leagueId: currentLeague.id,
+      }))
     : [];
-  const standingsByPlayerId = new Map(standings.map(standing => [standing.playerId, standing]));
-  const currentLeagueMatchById = new Map(currentLeagueMatches.map(match => [match.id, match]));
+  const standingsByPlayerId = new Map(currentLeagueStandings.map(standing => [standing.playerId, standing]));
+  const currentLeagueMatchById = new Map<string, Match>(
+    currentLeagueMatches.map(match => [match.id, match] as const),
+  );
 
   const roundsMap = new Map<number, Match[]>();
   currentLeagueMatches.forEach((match) => {
@@ -133,7 +195,85 @@ export default function PublicLeagues({
     : [
         `Az ${leagueLetter}-ligában alapértelmezés szerint az 1 piros pöttyös labdát kell használni.`,
         'Ettől az alábbi esetekben lehet eltérni: ha mindkét játékos egyetért, akkor a mérkőzés a választott labdatípussal játszható.',
-      ];
+    ];
+
+  const retryLoadPublicData = async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const data = await loadPublicLeagueData();
+      setPublicData(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Ismeretlen hiba történt a ligaadatok betöltésekor.';
+      setLoadError(message);
+      setPublicData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading && !publicData) {
+    return (
+      <div className="space-y-8 animate-fadeIn pb-16">
+        <div>
+          <span className="bg-brand-red/10 text-brand-red font-mono font-bold text-xs px-2.5 py-1 rounded-md uppercase tracking-wider">
+            Ligaadatok betöltése
+          </span>
+          <h2 className="text-3xl font-display font-extrabold text-gray-900 mt-2">Squash Ligacsoportok</h2>
+          <p className="text-sm text-gray-500 font-sans mt-1">
+            A publikus ligaadatok a Supabase-ből töltődnek be.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-150 bg-white p-6 shadow-xs">
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 w-40 rounded bg-gray-100" />
+            <div className="h-8 w-64 rounded bg-gray-100" />
+            <div className="h-4 w-72 rounded bg-gray-100" />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 pt-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                  <div className="h-5 w-24 rounded bg-gray-100 mb-4" />
+                  <div className="h-4 w-16 rounded bg-gray-100 mb-10" />
+                  <div className="h-10 w-full rounded-xl bg-gray-100" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError && !publicData) {
+    return (
+      <div className="space-y-8 animate-fadeIn pb-16">
+        <div>
+          <span className="bg-amber-100 text-amber-800 font-mono font-bold text-xs px-2.5 py-1 rounded-md uppercase tracking-wider">
+            Ligaadatok hibája
+          </span>
+          <h2 className="text-3xl font-display font-extrabold text-gray-900 mt-2">Squash Ligacsoportok</h2>
+          <p className="text-sm text-gray-500 font-sans mt-1">
+            Nem sikerült betölteni a publikus ligaadatokat a Supabase-ből.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-xs">
+          <h3 className="font-display font-bold text-lg text-amber-900">A ligaoldal jelenleg nem elérhető</h3>
+          <p className="mt-2 text-sm text-amber-800">
+            {loadError}
+          </p>
+          <button
+            onClick={() => void retryLoadPublicData()}
+            className="mt-4 inline-flex items-center justify-center rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-800"
+          >
+            Újrapróbálás
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!selectedLeagueId || !currentLeague) {
     // ----------------------------------------------------
@@ -168,7 +308,7 @@ export default function PublicLeagues({
                       {league.name}
                     </h3>
                     <span className="text-[10px] font-mono font-bold px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md">
-                      {getLeagueClassLabel(league.id)}
+                      {league.classLabel || 'Bajnokság'}
                     </span>
                   </div>
                 </div>
@@ -214,7 +354,7 @@ export default function PublicLeagues({
                 {currentLeague.name}
               </h1>
               <span className="text-xs font-mono bg-brand-red/10 text-brand-red font-bold px-2.5 py-0.5 rounded-md border border-brand-red/20">
-                {getLeagueClassLabel(selectedLeagueId || currentLeague.id)}
+                {currentLeague.classLabel || 'Bajnokság'}
               </span>
               <span className="text-xs font-mono bg-emerald-50 text-emerald-700 font-bold px-2.5 py-0.5 rounded-md border border-emerald-150">
                 Folyamatban
@@ -281,7 +421,7 @@ export default function PublicLeagues({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {standings.map((standing, index) => {
+                {currentLeagueStandings.map((standing, index) => {
                   const diff = standing.setDifference;
 
                   return (
@@ -512,9 +652,6 @@ export default function PublicLeagues({
               <h3 className="font-display font-bold text-lg text-gray-900">Lejátszott mérkőzések</h3>
               <p className="text-xs text-gray-500">Csak az approved eredmények jelennek meg.</p>
             </div>
-            <div className="text-xs font-mono text-gray-400 bg-gray-50 px-3 py-1.5 rounded-md">
-              Összesen: <span className="font-bold text-brand-red">{approvedLeagueResults.length} db</span> jóváhagyva
-            </div>
           </div>
 
           <div className="space-y-4">
@@ -551,11 +688,7 @@ export default function PublicLeagues({
                       </div>
 
                       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-150">
-                      <div className="text-[10px] font-mono text-gray-400">
-                        {result.sourceCells.length > 0 ? result.sourceCells.join(' • ') : 'Kézi import'}
-                      </div>
-
-                      <div className="bg-gray-100 border text-gray-800 text-sm font-mono font-bold px-3.5 py-1.5 rounded-lg">
+                        <div className="bg-gray-100 border text-gray-800 text-sm font-mono font-bold px-3.5 py-1.5 rounded-lg">
                           {result.normalizedSetsWon} : {result.normalizedSetsLost}
                         </div>
                       </div>
