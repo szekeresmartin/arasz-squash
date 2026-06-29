@@ -39,6 +39,11 @@ type SupabaseMatchRow = {
   submitted_score_away: number | null;
   submitted_at: string | null;
   approved_at: string | null;
+  submitted_by?: string | null;
+  submitter_name?: string | null;
+  submitter_contact?: string | null;
+  comment?: string | null;
+  approved_by?: string | null;
 };
 
 type SupabaseResultRow = {
@@ -182,6 +187,11 @@ function mapMatchRow(row: SupabaseMatchRow, approvedResultByMatchId: Map<string,
     submittedScore,
     submittedAt: row.submitted_at ?? undefined,
     approvedAt: row.approved_at ?? undefined,
+    submittedBy: row.submitted_by ?? undefined,
+    submitterName: row.submitter_name ?? undefined,
+    submitterContact: row.submitter_contact ?? undefined,
+    comment: row.comment ?? undefined,
+    approvedBy: row.approved_by ?? undefined,
     sourceCell: row.source_cell ?? undefined,
     reverseSourceCell: row.reverse_source_cell ?? undefined,
     submissionType: row.submission_type ?? undefined,
@@ -271,6 +281,22 @@ async function fetchSupabaseRows<T>(path: string): Promise<T[]> {
   return response.json() as Promise<T[]>;
 }
 
+async function fetchPublicMatchesRows(): Promise<SupabaseMatchRow[]> {
+  const basePath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at&order=league_id.asc,round_number.asc,id.asc';
+  const extendedPath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at,submitted_by,submitter_name,submitter_contact,comment,approved_by&order=league_id.asc,round_number.asc,id.asc';
+
+  try {
+    return await fetchSupabaseRows<SupabaseMatchRow>(extendedPath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('status 400')) {
+      return fetchSupabaseRows<SupabaseMatchRow>(basePath);
+    }
+
+    throw error;
+  }
+}
+
 export async function loadPublicLeagueData(): Promise<PublicLeagueData> {
   if (publicLeagueDataCache) {
     return publicLeagueDataCache;
@@ -284,7 +310,7 @@ export async function loadPublicLeagueData(): Promise<PublicLeagueData> {
     const corePromise = Promise.all([
       fetchSupabaseRows<SupabaseLeagueRow>('leagues?select=id,season_id,slug,name,sheet_name,class_label,display_order,player_count,rules,is_active&order=display_order.asc'),
       fetchSupabaseRows<SupabasePlayerRow>('public_players?select=id,league_id,name,source_sheet_name,header_cell,row_cell,order_index,active&order=league_id.asc,order_index.asc'),
-      fetchSupabaseRows<SupabaseMatchRow>('public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at&order=league_id.asc,round_number.asc,id.asc'),
+      fetchPublicMatchesRows(),
       fetchSupabaseRows<SupabaseResultRow>('public_results?select=id,league_id,match_id,player1_id,player2_id,source_sheet,source_cells,raw_home_token,raw_away_token,normalized_sets_won,normalized_sets_lost,kind,status,played_on_court,is_forfeit,imported_at,submitted_at,approved_at,source,source_reference,normalized_token&order=league_id.asc,created_at.desc,id.desc'),
     ]);
     const standingsPromise = fetchSupabaseRows<SupabaseStandingRow>(

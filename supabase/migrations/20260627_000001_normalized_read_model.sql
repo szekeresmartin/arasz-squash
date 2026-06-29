@@ -244,6 +244,11 @@ select
   submitted_score_away,
   submitted_at,
   approved_at,
+  submitted_by,
+  submitter_name,
+  submitter_contact,
+  comment,
+  approved_by,
   created_at,
   updated_at
 from public.matches;
