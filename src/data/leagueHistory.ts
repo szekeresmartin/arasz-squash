@@ -63,7 +63,7 @@ export const HISTORY_LEAGUES: HistoryLeague[] = [
       },
       {
         label: '2. hely',
-        values: ['Pék Róbert', 'Kovács Gábor', 'Tóth István', 'Marton Zoltán', 'Pék Róbert', 'Kovács Gábor', 'Tóth István', 'Dombay Miklós', 'Marton Zoltán', 'Marton Zoltán', 'Nagy Ferenc', 'Markó Zoltán', 'Tóth István', 'Kovács István'],
+        values: ['Pék Róbert', 'Kovács Gábor', 'Tóth István', 'Marton Zoltán', 'Pék Róbert', 'Kovács Gábor', 'Tóth István', 'Dombay Miklós', 'Marton Zoltán', 'Marton Zoltán', 'Nagy Ferenc', 'Markó Zoltán', 'Tóth István', 'Kovács Gábor'],
       },
     ],
   },

@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { League, Match, Player, Result } from '../types';
 import { Trophy, Calendar, CheckSquare, ArrowRight, Newspaper } from 'lucide-react';
 import { getLeagueClassLabel } from '../data';
-import { loadLatestPublicResults, type LatestPublicResultRow } from '../lib/public-results';
+import { getLatestPublicResultsCache, loadLatestPublicResults, type LatestPublicResultRow } from '../lib/public-results';
 
 interface PublicHomeProps {
   players: Player[];
@@ -10,21 +10,27 @@ interface PublicHomeProps {
   matches: Match[];
   results: Result[];
   setView: (view: 'home' | 'leagues' | 'rules' | 'history' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
+  publicResultsRevision: number;
 }
 
-export default function PublicHome({ players, leagues, matches, results, setView }: PublicHomeProps) {
-  const activeLeagues = leagues.filter(l => l.isActive).slice(0, 5);
-  const plannedMatchesCount = matches.filter(m => m.status === 'Tervezett').length;
-  const completedMatchesCount = matches.filter(m => m.status === 'Jóváhagyva').length;
-  const playerNameById = new Map(players.map(player => [player.id, player.name]));
-  const [latestPublicResults, setLatestPublicResults] = useState<LatestPublicResultRow[]>([]);
-  const [latestResultsStatus, setLatestResultsStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+export default function PublicHome({ players, leagues, matches, results, setView, publicResultsRevision }: PublicHomeProps) {
+  const activeLeagues = useMemo(() => leagues.filter(l => l.isActive).slice(0, 5), [leagues]);
+  const plannedMatchesCount = useMemo(() => matches.filter(m => m.status === 'Tervezett').length, [matches]);
+  const completedMatchesCount = useMemo(() => matches.filter(m => m.status === 'Jóváhagyva').length, [matches]);
+  const playerNameById = useMemo(() => new Map(players.map(player => [player.id, player.name])), [players]);
+  const cachedLatestResults = getLatestPublicResultsCache();
+  const [latestPublicResults, setLatestPublicResults] = useState<LatestPublicResultRow[]>(cachedLatestResults ?? []);
+  const [latestResultsStatus, setLatestResultsStatus] = useState<'loading' | 'ready' | 'error'>(cachedLatestResults ? 'ready' : 'loading');
+  const hasVisibleLatestResultsRef = useRef(Boolean(cachedLatestResults));
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
-      setLatestResultsStatus('loading');
+      if (!hasVisibleLatestResultsRef.current) {
+        setLatestResultsStatus('loading');
+      }
+
       try {
         const rows = await loadLatestPublicResults();
         if (cancelled) {
@@ -32,14 +38,17 @@ export default function PublicHome({ players, leagues, matches, results, setView
         }
 
         setLatestPublicResults(rows);
+        hasVisibleLatestResultsRef.current = true;
         setLatestResultsStatus('ready');
       } catch {
         if (cancelled) {
           return;
         }
 
-        setLatestPublicResults([]);
-        setLatestResultsStatus('error');
+        if (!hasVisibleLatestResultsRef.current) {
+          setLatestPublicResults([]);
+          setLatestResultsStatus('error');
+        }
       }
     };
 
@@ -48,7 +57,7 @@ export default function PublicHome({ players, leagues, matches, results, setView
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [publicResultsRevision]);
 
   const latestResults = useMemo(() => {
     return latestPublicResults.map((row) => ({

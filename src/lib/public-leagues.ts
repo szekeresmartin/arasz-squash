@@ -96,10 +96,10 @@ export type PublicLeagueData = {
 
 let publicLeagueDataCache: PublicLeagueData | null = null;
 let publicLeagueDataPromise: Promise<PublicLeagueData> | null = null;
+let publicLeagueDataIsStale = false;
 
 export function invalidatePublicLeagueDataCache() {
-  publicLeagueDataCache = null;
-  publicLeagueDataPromise = null;
+  publicLeagueDataIsStale = true;
 }
 
 function getSupabaseConfig() {
@@ -281,6 +281,67 @@ async function fetchSupabaseRows<T>(path: string): Promise<T[]> {
   return response.json() as Promise<T[]>;
 }
 
+async function fetchPublicLeagueDataFromSupabase(): Promise<PublicLeagueData> {
+  const corePromise = Promise.all([
+    fetchSupabaseRows<SupabaseLeagueRow>('leagues?select=id,season_id,slug,name,sheet_name,class_label,display_order,player_count,rules,is_active&order=display_order.asc'),
+    fetchSupabaseRows<SupabasePlayerRow>('public_players?select=id,league_id,name,source_sheet_name,header_cell,row_cell,order_index,active&order=league_id.asc,order_index.asc'),
+    fetchPublicMatchesRows(),
+    fetchSupabaseRows<SupabaseResultRow>('public_results?select=id,league_id,match_id,player1_id,player2_id,source_sheet,source_cells,raw_home_token,raw_away_token,normalized_sets_won,normalized_sets_lost,kind,status,played_on_court,is_forfeit,imported_at,submitted_at,approved_at,source,source_reference,normalized_token&order=league_id.asc,created_at.desc,id.desc'),
+  ]);
+  const standingsPromise = fetchSupabaseRows<SupabaseStandingRow>(
+    'public_standings?select=league_id,player_id,player_name,position,matches_played,wins,losses,sets_won,sets_lost,set_difference,points,ranking_score,form&order=league_id.asc,position.asc,player_name.asc',
+  ).catch(() => null);
+
+  const [leagueRows, playerRows, matchRows, resultRows] = await corePromise;
+  const remoteStandings = await standingsPromise;
+
+  const playerIdsByLeagueId = new Map<string, string[]>();
+  const activePlayers = playerRows
+    .filter((row) => row.active)
+    .map(mapPlayerRow);
+
+  for (const player of activePlayers) {
+    const leaguePlayers = playerIdsByLeagueId.get(player.leagueId ?? '');
+    if (leaguePlayers) {
+      leaguePlayers.push(player.id);
+    } else if (player.leagueId) {
+      playerIdsByLeagueId.set(player.leagueId, [player.id]);
+    }
+  }
+
+  const approvedResultRows = resultRows
+    .filter((row) => row.status === 'approved')
+    .map((row) => row);
+  const approvedResultByMatchId = new Map(approvedResultRows.map((row) => [row.match_id, row] as const));
+
+  const leagues = leagueRows.map((row) => mapLeagueRow(row, playerIdsByLeagueId.get(row.id) ?? []));
+  const matches = matchRows.map((row) => mapMatchRow(row, approvedResultByMatchId));
+  const results = approvedResultRows.map(mapResultRow);
+  const fallbackStandings = buildFallbackStandings({
+    leagues,
+    players: activePlayers,
+    matches,
+    results,
+  });
+
+  let standings = fallbackStandings;
+  if (remoteStandings) {
+    try {
+      standings = remoteStandings.map(mapStandingRow);
+    } catch {
+      standings = fallbackStandings;
+    }
+  }
+
+  return {
+    leagues,
+    players: activePlayers,
+    matches,
+    results,
+    standings,
+  };
+}
+
 async function fetchPublicMatchesRows(): Promise<SupabaseMatchRow[]> {
   const basePath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at&order=league_id.asc,round_number.asc,id.asc';
   const extendedPath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at,submitted_by,submitter_name,submitter_contact,comment,approved_by&order=league_id.asc,round_number.asc,id.asc';
@@ -298,7 +359,7 @@ async function fetchPublicMatchesRows(): Promise<SupabaseMatchRow[]> {
 }
 
 export async function loadPublicLeagueData(): Promise<PublicLeagueData> {
-  if (publicLeagueDataCache) {
+  if (publicLeagueDataCache && !publicLeagueDataIsStale) {
     return publicLeagueDataCache;
   }
 
@@ -306,76 +367,23 @@ export async function loadPublicLeagueData(): Promise<PublicLeagueData> {
     return publicLeagueDataPromise;
   }
 
-  publicLeagueDataPromise = (async () => {
-    const corePromise = Promise.all([
-      fetchSupabaseRows<SupabaseLeagueRow>('leagues?select=id,season_id,slug,name,sheet_name,class_label,display_order,player_count,rules,is_active&order=display_order.asc'),
-      fetchSupabaseRows<SupabasePlayerRow>('public_players?select=id,league_id,name,source_sheet_name,header_cell,row_cell,order_index,active&order=league_id.asc,order_index.asc'),
-      fetchPublicMatchesRows(),
-      fetchSupabaseRows<SupabaseResultRow>('public_results?select=id,league_id,match_id,player1_id,player2_id,source_sheet,source_cells,raw_home_token,raw_away_token,normalized_sets_won,normalized_sets_lost,kind,status,played_on_court,is_forfeit,imported_at,submitted_at,approved_at,source,source_reference,normalized_token&order=league_id.asc,created_at.desc,id.desc'),
-    ]);
-    const standingsPromise = fetchSupabaseRows<SupabaseStandingRow>(
-      'public_standings?select=league_id,player_id,player_name,position,matches_played,wins,losses,sets_won,sets_lost,set_difference,points,ranking_score,form&order=league_id.asc,position.asc,player_name.asc',
-    ).catch(() => null);
-
-    const [leagueRows, playerRows, matchRows, resultRows] = await corePromise;
-    const remoteStandings = await standingsPromise;
-
-    const playerIdsByLeagueId = new Map<string, string[]>();
-    const activePlayers = playerRows
-      .filter((row) => row.active)
-      .map(mapPlayerRow);
-
-    for (const player of activePlayers) {
-      const leaguePlayers = playerIdsByLeagueId.get(player.leagueId ?? '');
-      if (leaguePlayers) {
-        leaguePlayers.push(player.id);
-      } else if (player.leagueId) {
-        playerIdsByLeagueId.set(player.leagueId, [player.id]);
-      }
-    }
-
-    const approvedResultRows = resultRows
-      .filter((row) => row.status === 'approved')
-      .map((row) => row);
-    const approvedResultByMatchId = new Map(approvedResultRows.map((row) => [row.match_id, row] as const));
-
-    const leagues = leagueRows.map((row) => mapLeagueRow(row, playerIdsByLeagueId.get(row.id) ?? []));
-    const matches = matchRows.map((row) => mapMatchRow(row, approvedResultByMatchId));
-    const results = approvedResultRows.map(mapResultRow);
-    const fallbackStandings = buildFallbackStandings({
-      leagues,
-      players: activePlayers,
-      matches,
-      results,
-    });
-
-    let standings = fallbackStandings;
-    if (remoteStandings) {
-      try {
-        standings = remoteStandings.map(mapStandingRow);
-      } catch {
-        standings = fallbackStandings;
-      }
-    }
-
-    return {
-      leagues,
-      players: activePlayers,
-      matches,
-      results,
-      standings,
-    };
-  })();
+  publicLeagueDataPromise = fetchPublicLeagueDataFromSupabase();
 
   try {
     publicLeagueDataCache = await publicLeagueDataPromise;
+    publicLeagueDataIsStale = false;
     return publicLeagueDataCache;
   } finally {
     publicLeagueDataPromise = null;
   }
 }
 
+export function getPublicLeagueDataCache() {
+  return publicLeagueDataCache;
+}
+
 export function clearPublicLeagueDataCache() {
   publicLeagueDataCache = null;
   publicLeagueDataPromise = null;
+  publicLeagueDataIsStale = false;
 }

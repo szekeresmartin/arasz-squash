@@ -46,7 +46,7 @@ const LEAGUE_SLUGS = ['a-liga', 'b-liga', 'c-liga', 'd-liga', 'e-liga'] as const
 
 const RULE_TEXT = `A liga meccsre a WSF szabályrendszere vonatkozik, minden labdamenet pontot ér és 11 pontig tart egy szett. 10-10 után két pont különbséggel lehet nyerni. A mérkőzés öt lejátszott szettből áll.
 Pontozás: Győzelemért 5 pont, vereségért 2/3 szett aránynál 3 pont, 1/4 szett aránynál 2 pont, 0/5 szett aránynál 1 pont, játék nélkül 0 pont jár.
-Visszalépő játékos esetén a pontok elosztásáról a versenybizottság dönt a sportszerűség elve alapján. Ha valakivel többszöri próbálkozás ellenére sem sikerül időpontot egyeztetni,(és ennek nyoma van a viber csoportban) akkor a rendezőség egyedi elbírálása alapján is jár az 5 pont játék nélkül. Egyenlő pontszám esetén a megnyert mérkőzések száma, a jobb szett arány, megnyert szettek száma, vagy az egymás elleni eredmény dönt.(a megnyert szetteket, csak lejátszott mérkőzéseknél vesszük alapul, tehát ha az ellenfél nem tudta lejátszani a meccsét sérülés miatt, akkor két játékos eredményének összehasonlításánál a megnyert szetteket nem veszük számításba egyik félnél sem, de a pontokat természetesen igen)
+Visszalépő játékos esetén a pontok elosztásáról a versenybizottság dönt a sportszerűség elve alapján. Ha valakivel többszöri próbálkozás ellenére sem sikerül időpontot egyeztetni,(és ennek nyoma van a viber csoportban) akkor a rendezőség egyedi elbírálása alapján is jár az 5 pont játék nélkül. Egyenlő pontszám és részeredmény esetén a megnyert mérkőzések száma, a jobb szett arány, megnyert szettek száma, majd a névsor szerinti sorrend dönt. Azonos helyezést nem alkalmazunk.(a megnyert szetteket, csak lejátszott mérkőzéseknél vesszük alapul, tehát ha az ellenfél nem tudta lejátszani a meccsét sérülés miatt, akkor két játékos eredményének összehasonlításánál a megnyert szetteket nem veszük számításba egyik félnél sem, de a pontokat természetesen igen)
 Fontos, hogy küzdj minden szettért, mert a végén sokszor számít, hogy hány szettet tudtál megnyerni és ezen múlhat a helyezésed a ligában.
 Labda: "A" ligában 2 sárga pöttyös labda az alap! Ettől eltérni kétféleképpen lehet: 1. Amennyiben mindkét játékos beleegyezik úgy használható a piros pöttyös labda is.    2. Az +50 feletti játékosok kérhetik a piros labdát meccslabdának. 
 B - C - D - E  ligában az alap labda az 1 piros pöttyös. Amennyiben mindkét játékos beleegyezik úgy használható bármelyik típus.`;
@@ -326,40 +326,14 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     };
   });
 
-  const getHeadToHeadWinner = (playerAId: string, playerBId: string) => {
-    const directResults = approvedResults.filter(result => {
-      const pairMatches =
-        (result.player1Id === playerAId && result.player2Id === playerBId) ||
-        (result.player1Id === playerBId && result.player2Id === playerAId);
-      return pairMatches;
-    });
-
-    if (directResults.length !== 1) {
-      return null;
-    }
-
-    const result = directResults[0];
-    if (result.normalizedSetsWon === result.normalizedSetsLost) {
-      return null;
-    }
-
-    const player1Won = result.normalizedSetsWon > result.normalizedSetsLost;
-    const winnerId = player1Won ? result.player1Id : result.player2Id;
-    return winnerId === playerAId ? playerAId : winnerId === playerBId ? playerBId : null;
-  };
-
   standings.sort((a, b) => {
     if (b.basePoints !== a.basePoints) return b.basePoints - a.basePoints;
     if (b.wins !== a.wins) return b.wins - a.wins;
     if (b.setDifference !== a.setDifference) return b.setDifference - a.setDifference;
     if (b.setsWon !== a.setsWon) return b.setsWon - a.setsWon;
-
-    const headToHeadWinner = getHeadToHeadWinner(a.playerId, b.playerId);
-    if (headToHeadWinner === a.playerId) return -1;
-    if (headToHeadWinner === b.playerId) return 1;
-
-    // TODO: többes holtverseny esetén később admin / bizottsági döntés lehet szükséges.
-    return a.playerName.localeCompare(b.playerName, 'hu');
+    const nameOrder = a.playerName.localeCompare(b.playerName, 'hu');
+    if (nameOrder !== 0) return nameOrder;
+    return a.playerId.localeCompare(b.playerId, 'hu');
   });
 
   return standings.map((row, index) => ({

@@ -778,37 +778,14 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     rankingScore: row.basePoints * 1_000_000 + row.wins * 10_000 + (row.setsWon - row.setsLost) * 100 + row.setsWon,
   }));
 
-  const getHeadToHeadWinner = (playerAId: string, playerBId: string) => {
-    const directResults = results.filter(result => {
-      const pairMatches =
-        (result.player1Id === playerAId && result.player2Id === playerBId) ||
-        (result.player1Id === playerBId && result.player2Id === playerAId);
-      return result.status === 'approved' && pairMatches;
-    });
-
-    if (directResults.length !== 1) {
-      return null;
-    }
-
-    const result = directResults[0];
-    if (result.normalizedSetsWon === result.normalizedSetsLost) {
-      return null;
-    }
-
-    const winnerId = result.normalizedSetsWon > result.normalizedSetsLost ? result.player1Id : result.player2Id;
-    return winnerId === playerAId ? playerAId : winnerId === playerBId ? playerBId : null;
-  };
-
   standings.sort((a, b) => {
     if (b.basePoints !== a.basePoints) return b.basePoints - a.basePoints;
     if (b.wins !== a.wins) return b.wins - a.wins;
     if ((b.setsWon - b.setsLost) !== (a.setsWon - a.setsLost)) return (b.setsWon - b.setsLost) - (a.setsWon - a.setsLost);
     if (b.setsWon !== a.setsWon) return b.setsWon - a.setsWon;
-    const headToHeadWinner = getHeadToHeadWinner(a.playerId, b.playerId);
-    if (headToHeadWinner === a.playerId) return -1;
-    if (headToHeadWinner === b.playerId) return 1;
-    // TODO: többes holtverseny esetén lehet, hogy admin döntésre lesz szükség.
-    return a.playerName.localeCompare(b.playerName, 'hu');
+    const nameOrder = a.playerName.localeCompare(b.playerName, 'hu');
+    if (nameOrder !== 0) return nameOrder;
+    return a.playerId.localeCompare(b.playerId, 'hu');
   });
 
   standings.forEach((row, index) => {

@@ -25,7 +25,8 @@ import {
   submitMatchResultToSupabase,
   type SubmitMatchResultOutcome,
 } from './lib/result-submissions';
-import { invalidatePublicLeagueDataCache, loadPublicLeagueData, type PublicLeagueData } from './lib/public-leagues';
+import { invalidatePublicLeagueDataCache } from './lib/public-leagues';
+import { invalidateLatestPublicResultsCache } from './lib/public-results';
 import {
   getLeaguePath,
   resolveViewFromPath,
@@ -53,8 +54,8 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState<'syncing' | 'ready' | 'offline'>('syncing');
   const [hasCompletedInitialHydration, setHasCompletedInitialHydration] = useState(false);
   const [adminActionError, setAdminActionError] = useState<string | null>(null);
-  const [publicLeagueData, setPublicLeagueData] = useState<PublicLeagueData | null>(null);
   const [publicLeagueDataRevision, setPublicLeagueDataRevision] = useState(0);
+  const [latestPublicResultsRevision, setLatestPublicResultsRevision] = useState(0);
   const skipNextAutosaveRef = useRef(true);
   const userMutatedBeforeHydrationRef = useRef(false);
 
@@ -90,34 +91,14 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const data = await loadPublicLeagueData();
-        if (cancelled) {
-          return;
-        }
-
-        setPublicLeagueData(data);
-      } catch {
-        if (!cancelled) {
-          setPublicLeagueData(null);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [publicLeagueDataRevision]);
-
   const refreshPublicLeagueData = () => {
     invalidatePublicLeagueDataCache();
     setPublicLeagueDataRevision(revision => revision + 1);
+  };
+
+  const refreshLatestPublicResults = () => {
+    invalidateLatestPublicResultsCache();
+    setLatestPublicResultsRevision(revision => revision + 1);
   };
 
   useEffect(() => {
@@ -286,7 +267,7 @@ export default function App() {
     };
   };
 
-  const createMatchId = (leagueId: string, player1Id: string, player2Id: string) => {
+  const createSyntheticCustomMatchId = (leagueId: string, player1Id: string, player2Id: string) => {
     const league = leagues.find(item => item.id === leagueId);
     const player1Name = players.find(player => player.id === player1Id)?.name ?? player1Id;
     const player2Name = players.find(player => player.id === player2Id)?.name ?? player2Id;
@@ -298,10 +279,10 @@ export default function App() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    return `match-${slug}`;
+    return `m_sub_${slug}`;
   };
 
-  const isSyntheticCustomMatch = (match: Match) => match.id.startsWith('m_sub_');
+  const isSyntheticCustomMatch = (match: Match) => match.submissionType === 'custom' || match.id.startsWith('m_sub_');
 
   const resetSubmittedMatch = async (match: Match) => {
     await resetMatchSubmissionOnSupabase({ matchId: match.id });
@@ -378,7 +359,6 @@ export default function App() {
           submissionType: 'planned',
         };
       }));
-      invalidatePublicLeagueDataCache();
       refreshPublicLeagueData();
 
       return {
@@ -387,9 +367,40 @@ export default function App() {
       };
     }
 
+    const existingCustomSubmission = matches.find(match => {
+      const sameLeague = match.leagueId === payload.leagueId;
+      const sameOrder = match.player1Id === payload.player1Id && match.player2Id === payload.player2Id;
+      const reverseOrder = match.player1Id === payload.player2Id && match.player2Id === payload.player1Id;
+      return sameLeague && match.status === 'Beküldve' && match.submissionType === 'custom' && (sameOrder || reverseOrder);
+    });
+
+    if (existingCustomSubmission) {
+      const nowIso = new Date().toISOString();
+      setMatches(prev => prev.map(match => {
+        if (match.id !== existingCustomSubmission.id) {
+          return match;
+        }
+
+        return {
+          ...match,
+          submittedScore: normalizedScore,
+          submitterName: payload.submitterName,
+          submitterContact: undefined,
+          comment: payload.comment,
+          submittedAt: nowIso,
+        };
+      }));
+      refreshPublicLeagueData();
+
+      return {
+        remoteAttempted: false,
+        remoteSynced: true,
+      };
+    }
+
     setMatches(prev => [
       {
-        id: createMatchId(payload.leagueId, payload.player1Id, payload.player2Id),
+        id: createSyntheticCustomMatchId(payload.leagueId, payload.player1Id, payload.player2Id),
         leagueId: payload.leagueId,
         round: 0,
         player1Id: payload.player1Id,
@@ -404,7 +415,6 @@ export default function App() {
       },
       ...prev,
     ]);
-    invalidatePublicLeagueDataCache();
     refreshPublicLeagueData();
 
     return {
@@ -460,8 +470,8 @@ export default function App() {
       return;
     }
 
-    invalidatePublicLeagueDataCache();
     refreshPublicLeagueData();
+    refreshLatestPublicResults();
 
     setMatches(prev => prev.map(m => {
       if (m.id !== matchId) {
@@ -525,8 +535,8 @@ export default function App() {
 
     try {
       await resetSubmittedMatch(match);
-      invalidatePublicLeagueDataCache();
       refreshPublicLeagueData();
+      refreshLatestPublicResults();
       applyLocalReject();
     } catch (error) {
       const resetError = classifySubmissionError(error);
@@ -584,8 +594,8 @@ export default function App() {
 
     try {
       await resetSubmittedMatch(match);
-      invalidatePublicLeagueDataCache();
       refreshPublicLeagueData();
+      refreshLatestPublicResults();
       applyLocalDelete();
     } catch (error) {
       const resetError = classifySubmissionError(error);
@@ -637,22 +647,24 @@ export default function App() {
             leagues={leagues} 
             matches={matches} 
             results={results}
-          setView={handleSetView} 
-        />
-      )}
+            setView={handleSetView}
+            publicResultsRevision={latestPublicResultsRevision}
+          />
+        )}
 
         {currentView === 'leagues' && (
           <PublicLeagues
-          players={players}
-          leagues={leagues}
-          matches={matches}
-          results={results}
-          onSubmitResult={handleSubmitResult}
-          setView={handleSetView}
-          selectedLeagueId={selectedLeagueId}
-          initialSubTab={selectedSubTab}
-        />
-      )}
+            players={players}
+            leagues={leagues}
+            matches={matches}
+            results={results}
+            onSubmitResult={handleSubmitResult}
+            setView={handleSetView}
+            selectedLeagueId={selectedLeagueId}
+            initialSubTab={selectedSubTab}
+            publicLeagueDataRevision={publicLeagueDataRevision}
+          />
+        )}
 
         {currentView === 'rules' && (
           <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Szabályzat betöltése...</div>}>
@@ -678,7 +690,7 @@ export default function App() {
                 players={players}
                 leagues={leagues}
                 matches={matches}
-                approvalMatches={publicLeagueData?.matches ?? undefined}
+                approvalMatches={matches}
                 sponsors={sponsors}
                 onAddPlayer={handleAddPlayer}
                 onUpdatePlayer={handleUpdatePlayer}

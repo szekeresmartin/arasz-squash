@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Player, League, Match, Standing, Result } from '../types';
 import { Trophy, Calendar, Users, FileText, ArrowLeft, Star, MapPin, Eye, CheckCircle2, Send, Shield, Award, Orbit } from 'lucide-react';
 import { calculateStandings } from '../data';
 import SubmitResult from './SubmitResult';
-import { loadPublicLeagueData, type PublicLeagueData } from '../lib/public-leagues';
+import { getPublicLeagueDataCache, loadPublicLeagueData, type PublicLeagueData } from '../lib/public-leagues';
 import type { SubmitMatchResultOutcome } from '../lib/result-submissions';
 
 interface PublicLeaguesProps {
@@ -26,6 +26,7 @@ interface PublicLeaguesProps {
   setView: (view: 'home' | 'leagues' | 'rules' | 'admin', extra?: { leagueId?: string; subTab?: string }) => void;
   selectedLeagueId: string | null;
   initialSubTab?: string;
+  publicLeagueDataRevision: number;
 }
 
 const LEAGUE_TABS = [
@@ -46,10 +47,11 @@ export default function PublicLeagues({
   setView,
   selectedLeagueId,
   initialSubTab = 'tabella',
+  publicLeagueDataRevision,
 }: PublicLeaguesProps) {
   const [activeTab, setActiveTab] = useState<string>(initialSubTab);
-  const [publicData, setPublicData] = useState<PublicLeagueData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [publicData, setPublicData] = useState<PublicLeagueData | null>(getPublicLeagueDataCache());
+  const [isLoading, setIsLoading] = useState(() => !getPublicLeagueDataCache());
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Az al-fület beállítjuk ha kívülről kapunk paramétert
@@ -63,7 +65,9 @@ export default function PublicLeagues({
     let cancelled = false;
 
     const loadLeagueData = async () => {
-      setIsLoading(true);
+      if (!publicData) {
+        setIsLoading(true);
+      }
       setLoadError(null);
 
       try {
@@ -79,8 +83,10 @@ export default function PublicLeagues({
         }
 
         const message = error instanceof Error ? error.message : 'Ismeretlen hiba történt a ligaadatok betöltésekor.';
-        setLoadError(message);
-        setPublicData(null);
+        if (!publicData) {
+          setLoadError(message);
+          setPublicData(null);
+        }
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -93,7 +99,7 @@ export default function PublicLeagues({
     return () => {
       cancelled = true;
     };
-  }, [legacyPlayers, legacyLeagues, legacyMatches, legacyResults]);
+  }, [publicLeagueDataRevision]);
 
   const players = publicData?.players ?? [];
   const leagues = publicData?.leagues ?? [];
@@ -108,10 +114,13 @@ export default function PublicLeagues({
     }
   };
 
-  const playerNameById = new Map(players.map(player => [player.id, player.name]));
+  const playerNameById = useMemo(() => new Map(players.map(player => [player.id, player.name])), [players]);
   const getPlayerName = (id: string) => playerNameById.get(id) || 'Ismeretlen';
 
-  const currentLeague = leagues.find(l => l.id === selectedLeagueId);
+  const currentLeague = useMemo(
+    () => leagues.find(l => l.id === selectedLeagueId),
+    [leagues, selectedLeagueId],
+  );
   const leagueLetter = currentLeague?.id.split('-').pop()?.toUpperCase() || 'A';
   const isALeague = leagueLetter === 'A';
   const leagueRulesTitle = `${leagueLetter} liga szabályai`;
@@ -129,56 +138,80 @@ export default function PublicLeagues({
     };
   };
 
-  const currentLeaguePlayers = currentLeague
-    ? players.filter(player => player.leagueId === currentLeague.id)
-    : [];
-
-  const currentLeagueMatches = currentLeague
-    ? matches.filter(match => match.leagueId === currentLeague.id && match.status !== 'Beküldve')
-    : [];
-  const currentLeagueResults = currentLeague ? results.filter(result => result.leagueId === currentLeague.id) : [];
-  const approvedLeagueResults = currentLeagueResults.filter(result => result.status === 'approved');
-
-  const standingsByLeagueId = new Map<string, Standing[]>();
-  standings.forEach((standing) => {
-    if (!standing.leagueId) {
-      return;
-    }
-    const leagueStandings = standingsByLeagueId.get(standing.leagueId) ?? [];
-    leagueStandings.push(standing);
-    standingsByLeagueId.set(standing.leagueId, leagueStandings);
-  });
-
-  const currentLeagueStandings: Standing[] = currentLeague
-    ? standingsByLeagueId.get(currentLeague.id) ?? calculateStandings(currentLeaguePlayers, currentLeagueMatches, currentLeagueResults).map((standing) => ({
-        ...standing,
-        leagueId: currentLeague.id,
-      }))
-    : [];
-  const standingsByPlayerId = new Map(currentLeagueStandings.map(standing => [standing.playerId, standing]));
-  const currentLeagueMatchById = new Map<string, Match>(
-    currentLeagueMatches.map(match => [match.id, match] as const),
+  const currentLeaguePlayers = useMemo(
+    () => (currentLeague ? players.filter(player => player.leagueId === currentLeague.id) : []),
+    [currentLeague, players],
   );
 
-  const roundsMap = new Map<number, Match[]>();
-  currentLeagueMatches.forEach((match) => {
-    if (match.round <= 0) {
-      return;
-    }
-    const roundMatches = roundsMap.get(match.round) ?? [];
-    roundMatches.push(match);
-    roundsMap.set(match.round, roundMatches);
-  });
-  const roundNumbers = [...roundsMap.keys()].sort((a, b) => a - b);
+  const currentLeagueMatches = useMemo(
+    () => (currentLeague ? matches.filter(match => match.leagueId === currentLeague.id && match.status !== 'Beküldve') : []),
+    [currentLeague, matches],
+  );
+  const currentLeagueResults = useMemo(
+    () => (currentLeague ? results.filter(result => result.leagueId === currentLeague.id) : []),
+    [currentLeague, results],
+  );
+  const approvedLeagueResults = useMemo(
+    () => currentLeagueResults.filter(result => result.status === 'approved'),
+    [currentLeagueResults],
+  );
 
-  const activePlayers = currentLeague
-    ? currentLeague.playerIds
-        .map(playerId => currentLeaguePlayers.find(player => player.id === playerId))
-        .filter((player): player is Player => Boolean(player))
-    : [];
-  const sortedApprovedLeagueResults = approvedLeagueResults
-    .slice()
-    .sort((a, b) => (currentLeagueMatchById.get(a.matchId)?.round ?? 0) - (currentLeagueMatchById.get(b.matchId)?.round ?? 0));
+  const standingsByLeagueId = useMemo(() => {
+    const map = new Map<string, Standing[]>();
+    standings.forEach((standing) => {
+      if (!standing.leagueId) {
+        return;
+      }
+      const leagueStandings = map.get(standing.leagueId) ?? [];
+      leagueStandings.push(standing);
+      map.set(standing.leagueId, leagueStandings);
+    });
+    return map;
+  }, [standings]);
+
+  const currentLeagueStandings: Standing[] = useMemo(
+    () => currentLeague
+      ? standingsByLeagueId.get(currentLeague.id) ?? calculateStandings(currentLeaguePlayers, currentLeagueMatches, currentLeagueResults).map((standing) => ({
+          ...standing,
+          leagueId: currentLeague.id,
+        }))
+      : [],
+    [currentLeague, currentLeaguePlayers, currentLeagueMatches, currentLeagueResults, standingsByLeagueId],
+  );
+  const standingsByPlayerId = useMemo(() => new Map(currentLeagueStandings.map(standing => [standing.playerId, standing])), [currentLeagueStandings]);
+  const currentLeagueMatchById = useMemo(
+    () => new Map<string, Match>(currentLeagueMatches.map(match => [match.id, match] as const)),
+    [currentLeagueMatches],
+  );
+
+  const roundsByNumber = useMemo(() => {
+    const roundsMap = new Map<number, Match[]>();
+    currentLeagueMatches.forEach((match) => {
+      if (match.round <= 0) {
+        return;
+      }
+      const roundMatches = roundsMap.get(match.round) ?? [];
+      roundMatches.push(match);
+      roundsMap.set(match.round, roundMatches);
+    });
+    return roundsMap;
+  }, [currentLeagueMatches]);
+  const roundNumbers = useMemo(() => [...roundsByNumber.keys()].sort((a, b) => a - b), [roundsByNumber]);
+
+  const activePlayers = useMemo(
+    () => (currentLeague
+      ? currentLeague.playerIds
+          .map(playerId => currentLeaguePlayers.find(player => player.id === playerId))
+          .filter((player): player is Player => Boolean(player))
+      : []),
+    [currentLeague, currentLeaguePlayers],
+  );
+  const sortedApprovedLeagueResults = useMemo(
+    () => approvedLeagueResults
+      .slice()
+      .sort((a, b) => (currentLeagueMatchById.get(a.matchId)?.round ?? 0) - (currentLeagueMatchById.get(b.matchId)?.round ?? 0)),
+    [approvedLeagueResults, currentLeagueMatchById],
+  );
 
   const matchRulesParagraphs = [
     'Minden mérkőzés 5 szettig tart.',
@@ -506,7 +539,7 @@ export default function PublicLeagues({
           
           <div className="mt-8 border-t border-gray-100 pt-4 flex flex-col sm:flex-row justify-between text-xs text-gray-400 font-mono gap-2">
             <span>Győzelem = 5 pont | Vereség: 2/3 = 3, 1/4 = 2, 0/5 = 1, játék nélkül = 0</span>
-            <span>Azonos pontnál a győzelmek száma, a szettkülönbség, majd a nyert szettek döntnek.</span>
+            <span>Azonos pontnál a győzelmek száma, a szettkülönbség, majd a névsor szerinti sorrend dönt.</span>
           </div>
           {approvedLeagueResults.length === 0 && (
             <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-500">
@@ -525,7 +558,7 @@ export default function PublicLeagues({
             </div>
           ) : (
             roundNumbers.map((roundNum) => {
-              const roundMatches = roundsMap.get(roundNum) ?? [];
+              const roundMatches = roundsByNumber.get(roundNum) ?? [];
               return (
                 <div key={roundNum} className="bg-white border border-gray-150 rounded-2xl overflow-hidden shadow-xs">
                   <div className="bg-gray-50 border-b border-gray-150 px-6 py-4 flex justify-between items-center">

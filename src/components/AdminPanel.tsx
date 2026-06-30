@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Player, League, Match, Sponsor, MatchScore } from '../types';
 import { 
   Trophy, Users, Calendar, CheckCircle2, XCircle, Edit3, Save, Plus, 
@@ -49,40 +49,53 @@ export default function AdminPanel({
   // Belső navigációs fülek az adminon belül
   const [activeAdminTab, setActiveAdminTab] = useState<string>('dashboard');
 
-  const approvalSourceMatches = (approvalMatches ?? matches).filter(match => !match.id.startsWith('m_sub_'));
+  const approvalSourceMatches = useMemo(
+    () => approvalMatches ?? matches,
+    [approvalMatches, matches],
+  );
 
-  const pendingSubmissions = approvalSourceMatches
-    .filter(m => m.status === 'Beküldve')
-    .slice()
-    .sort((a, b) => {
-      const aTime = a.submittedAt ? Date.parse(a.submittedAt) : 0;
-      const bTime = b.submittedAt ? Date.parse(b.submittedAt) : 0;
+  const pendingSubmissions = useMemo(
+    () => approvalSourceMatches
+      .filter(m => m.status === 'Beküldve')
+      .slice()
+      .sort((a, b) => {
+        const aTime = a.submittedAt ? Date.parse(a.submittedAt) : 0;
+        const bTime = b.submittedAt ? Date.parse(b.submittedAt) : 0;
 
-      if (bTime !== aTime) {
-        return bTime - aTime;
-      }
+        if (bTime !== aTime) {
+          return bTime - aTime;
+        }
 
-      return b.id.localeCompare(a.id);
-    });
-  const approvedMatches = approvalSourceMatches
-    .filter(m => m.status === 'Jóváhagyva')
-    .slice()
-    .sort((a, b) => {
-      const aTime = a.submittedAt ? Date.parse(a.submittedAt) : 0;
-      const bTime = b.submittedAt ? Date.parse(b.submittedAt) : 0;
+        return b.id.localeCompare(a.id);
+      }),
+    [approvalSourceMatches],
+  );
+  const approvedMatches = useMemo(
+    () => approvalSourceMatches
+      .filter(m => m.status === 'Jóváhagyva')
+      .slice()
+      .sort((a, b) => {
+        const aTime = a.submittedAt ? Date.parse(a.submittedAt) : 0;
+        const bTime = b.submittedAt ? Date.parse(b.submittedAt) : 0;
 
-      if (bTime !== aTime) {
-        return bTime - aTime;
-      }
+        if (bTime !== aTime) {
+          return bTime - aTime;
+        }
 
-      return b.id.localeCompare(a.id);
-    });
-  const activeLeaguesCount = leagues.filter(l => l.isActive).length;
-  const playedMatchesCount = approvalSourceMatches.filter(m => m.status === 'Jóváhagyva').length;
+        return b.id.localeCompare(a.id);
+      }),
+    [approvalSourceMatches],
+  );
+  const activeLeaguesCount = useMemo(() => leagues.filter(l => l.isActive).length, [leagues]);
+  const playedMatchesCount = useMemo(
+    () => approvalSourceMatches.filter(m => m.status === 'Jóváhagyva').length,
+    [approvalSourceMatches],
+  );
   const activePlayersCount = players.length;
 
+  const playerNameById = useMemo(() => new Map(players.map(player => [player.id, player.name])), [players]);
   const getPlayerName = (id: string) => {
-    return players.find(p => p.id === id)?.name || 'Ismeretlen';
+    return playerNameById.get(id) || 'Ismeretlen';
   };
 
   // ----------------------------------------------------
@@ -1034,6 +1047,7 @@ export default function AdminPanel({
               const leagueName = leagues.find(l => l.id === match.leagueId)?.name || 'Liga';
               const score = match.submittedScore;
               const isEditing = editingSubId === match.id;
+              const isCustomSubmission = match.id.startsWith('m_sub_');
 
               return (
                 <div key={match.id} className="bg-white border rounded-xl overflow-hidden shadow-xs border-amber-200">
@@ -1042,6 +1056,11 @@ export default function AdminPanel({
                       <span className="text-xs font-mono font-bold bg-brand-red text-white px-2 py-0.5 rounded-sm">
                         {leagueName}
                       </span>
+                      {isCustomSubmission && (
+                        <span className="text-xs font-mono font-bold bg-slate-900 text-white px-2 py-0.5 rounded-sm">
+                          KÉZI BEKÜLDÉS
+                        </span>
+                      )}
                       <span className="text-xs font-mono font-bold text-amber-800">FÜGGŐ JÓVÁHAGYÁS</span>
                     </div>
                     <span className="text-[10px] font-mono text-gray-400">
