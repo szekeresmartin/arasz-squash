@@ -853,7 +853,7 @@ export function calculateStandings(players: Player[], matches: Match[], results:
   let position = 0;
   let previousKey = '';
 
-  standings.forEach((row) => {
+  standings.forEach((row, index) => {
     const key = [
       row.basePoints,
       row.wins,
@@ -863,7 +863,7 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     ].join('|');
 
     if (key !== previousKey) {
-      position += 1;
+      position = index + 1;
       previousKey = key;
     }
 

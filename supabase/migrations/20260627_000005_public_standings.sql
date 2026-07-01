@@ -183,9 +183,9 @@ select
   league_id,
   player_id,
   player_name,
-  row_number() over (
+  rank() over (
     partition by league_id
-    order by points desc, wins desc, set_difference desc, sets_won desc, head_to_head_wins desc, player_name asc
+    order by points desc, wins desc, set_difference desc, sets_won desc, head_to_head_wins desc
   ) as position,
   matches_played,
   wins,

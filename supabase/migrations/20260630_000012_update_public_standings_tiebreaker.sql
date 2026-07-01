@@ -1,4 +1,4 @@
--- Public standings view with deterministic alphabetical tie-breaking and shared placement for exact ties.
+-- Public standings view with deterministic alphabetical tie-breaking and competition ranking gaps for ties.
 
 create or replace view public.public_standings as
 with active_players as (
@@ -182,7 +182,7 @@ select
   league_id,
   player_id,
   player_name,
-  dense_rank() over (
+  rank() over (
     partition by league_id
     order by points desc, wins desc, set_difference desc, sets_won desc, head_to_head_wins desc
   ) as position,

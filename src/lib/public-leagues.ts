@@ -84,22 +84,6 @@ type SupabaseResultRow = {
   normalized_token: string | null;
 };
 
-type SupabaseStandingRow = {
-  league_id: string;
-  player_id: string;
-  player_name: string;
-  position: number;
-  matches_played: number;
-  wins: number;
-  losses: number;
-  sets_won: number;
-  sets_lost: number;
-  set_difference: number;
-  points: number;
-  ranking_score: number | null;
-  form: string[] | null;
-};
-
 export type PublicLeagueData = {
   leagues: League[];
   players: Player[];
@@ -256,24 +240,6 @@ function mapResultRow(row: SupabaseResultRow): Result {
   };
 }
 
-function mapStandingRow(row: SupabaseStandingRow): Standing {
-  return {
-    leagueId: row.league_id,
-    playerId: row.player_id,
-    playerName: row.player_name,
-    matchesPlayed: row.matches_played,
-    wins: row.wins,
-    losses: row.losses,
-    setsWon: row.sets_won,
-    setsLost: row.sets_lost,
-    setDifference: row.set_difference,
-    basePoints: row.points,
-    rankingScore: row.ranking_score ?? (row.points * 1_000_000 + row.wins * 10_000 + row.set_difference * 100 + row.sets_won),
-    position: row.position,
-    form: (row.form ?? []).map((entry) => (entry === 'W' ? 'W' : 'L')),
-  };
-}
-
 function buildFallbackStandings(data: {
   leagues: League[];
   players: Player[];
@@ -320,12 +286,8 @@ async function fetchPublicLeagueDataFromSupabase(): Promise<PublicLeagueData> {
     fetchSupabaseRows<SupabaseResultRow>('public_results?select=id,league_id,match_id,player1_id,player2_id,source_sheet,source_cells,raw_home_token,raw_away_token,normalized_sets_won,normalized_sets_lost,kind,status,played_on_court,is_forfeit,imported_at,submitted_at,approved_at,source,source_reference,normalized_token&order=league_id.asc,created_at.desc,id.desc'),
     fetchSupabaseRows<SupabaseSponsorRow>('sponsors?select=id,name,logo_text,logo_path,website_url,color_hex,is_active,display_order&order=display_order.asc'),
   ]);
-  const standingsPromise = fetchSupabaseRows<SupabaseStandingRow>(
-    'public_standings?select=league_id,player_id,player_name,position,matches_played,wins,losses,sets_won,sets_lost,set_difference,points,ranking_score,form&order=league_id.asc,position.asc,player_name.asc',
-  ).catch(() => null);
 
   const [leagueRows, playerRows, matchRows, resultRows, sponsorRows] = await corePromise;
-  const remoteStandings = await standingsPromise;
 
   const playerIdsByLeagueId = new Map<string, string[]>();
   const activePlayers = playerRows
@@ -349,21 +311,12 @@ async function fetchPublicLeagueDataFromSupabase(): Promise<PublicLeagueData> {
   const leagues = leagueRows.map((row) => mapLeagueRow(row, playerIdsByLeagueId.get(row.id) ?? []));
   const matches = matchRows.map((row) => mapMatchRow(row, approvedResultByMatchId));
   const results = approvedResultRows.map(mapResultRow);
-  const fallbackStandings = buildFallbackStandings({
+  const standings = buildFallbackStandings({
     leagues,
     players: activePlayers,
     matches,
     results,
   });
-
-  let standings = fallbackStandings;
-  if (remoteStandings) {
-    try {
-      standings = remoteStandings.map(mapStandingRow);
-    } catch {
-      standings = fallbackStandings;
-    }
-  }
 
   return {
     leagues,

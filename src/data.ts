@@ -394,12 +394,12 @@ export function calculateStandings(players: Player[], matches: Match[], results:
   let currentPosition = 0;
   let previousKey = '';
 
-  return standings.map((row) => {
+  return standings.map((row, index) => {
     const headToHead = headToHeadWinsByPlayerId.get(row.playerId) ?? 0;
     const key = `${row.basePoints}|${row.wins}|${row.setDifference}|${row.setsWon}|${headToHead}`;
 
     if (key !== previousKey) {
-      currentPosition += 1;
+      currentPosition = index + 1;
       previousKey = key;
     }
 

@@ -428,7 +428,6 @@ export default function PublicLeagues({
         <div className="bg-white border border-gray-150 rounded-2xl p-4 sm:p-6 shadow-xs animate-fadeIn" id="tabella-pane">
           <div className="mb-4">
             <h3 className="font-display font-bold text-lg text-gray-900">Aktuális Állás</h3>
-            <p className="text-xs text-gray-500">A tabella az approved eredményekből számolódik újra.</p>
           </div>
 
           <div className="overflow-x-auto">
@@ -677,7 +676,6 @@ export default function PublicLeagues({
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-display font-bold text-lg text-gray-900">Lejátszott mérkőzések</h3>
-              <p className="text-xs text-gray-500">Csak az approved eredmények jelennek meg.</p>
             </div>
           </div>
 
