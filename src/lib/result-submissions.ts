@@ -91,7 +91,6 @@ export async function submitMatchResultToSupabase(input: SubmitMatchResultInput)
       p_submitted_score_home: input.finalScore.player1Sets,
       p_submitted_score_away: input.finalScore.player2Sets,
       p_submitter_name: input.submitterName,
-      p_submitter_contact: null,
       p_comment: input.comment ?? null,
       p_submitted_player1_id: input.submittedPlayer1Id ?? null,
       p_submitted_player2_id: input.submittedPlayer2Id ?? null,
