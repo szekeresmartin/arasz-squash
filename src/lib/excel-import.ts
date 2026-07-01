@@ -722,6 +722,7 @@ function buildLeagueImport(
 
 export function calculateStandings(players: Player[], matches: Match[], results: Result[]): StandingRow[] {
   const rows = new Map<string, StandingRow>();
+  const headToHeadWinsByPlayerId = new Map<string, number>();
 
   for (const player of players) {
     rows.set(player.id, {
@@ -772,6 +773,64 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     }
   }
 
+  const pairWins = new Map<string, { player1Id: string; player2Id: string; player1Wins: number; player2Wins: number }>();
+
+  for (const match of matches) {
+    const result = approvedResultByMatchId.get(match.id);
+    if (!result) continue;
+
+    const pairKey = result.player1Id < result.player2Id
+      ? `${result.player1Id}::${result.player2Id}`
+      : `${result.player2Id}::${result.player1Id}`;
+    const pair = pairWins.get(pairKey) ?? {
+      player1Id: result.player1Id,
+      player2Id: result.player2Id,
+      player1Wins: 0,
+      player2Wins: 0,
+    };
+
+    if (result.normalizedSetsWon > result.normalizedSetsLost) {
+      if (pair.player1Id === result.player1Id) {
+        pair.player1Wins += 1;
+      } else {
+        pair.player2Wins += 1;
+      }
+    } else if (result.normalizedSetsLost > result.normalizedSetsWon) {
+      if (pair.player1Id === result.player1Id) {
+        pair.player2Wins += 1;
+      } else {
+        pair.player1Wins += 1;
+      }
+    }
+
+    pairWins.set(pairKey, pair);
+  }
+
+  for (const pair of pairWins.values()) {
+    const row1 = rows.get(pair.player1Id);
+    const row2 = rows.get(pair.player2Id);
+
+    if (!row1 || !row2) {
+      continue;
+    }
+
+    const sameRankingStats =
+      row1.basePoints === row2.basePoints &&
+      row1.wins === row2.wins &&
+      (row1.setsWon - row1.setsLost) === (row2.setsWon - row2.setsLost) &&
+      row1.setsWon === row2.setsWon;
+
+    if (!sameRankingStats) {
+      continue;
+    }
+
+    if (pair.player1Wins > pair.player2Wins) {
+      headToHeadWinsByPlayerId.set(pair.player1Id, (headToHeadWinsByPlayerId.get(pair.player1Id) ?? 0) + 1);
+    } else if (pair.player2Wins > pair.player1Wins) {
+      headToHeadWinsByPlayerId.set(pair.player2Id, (headToHeadWinsByPlayerId.get(pair.player2Id) ?? 0) + 1);
+    }
+  }
+
   const standings = [...rows.values()].map(row => ({
     ...row,
     setDifference: row.setsWon - row.setsLost,
@@ -783,13 +842,32 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     if (b.wins !== a.wins) return b.wins - a.wins;
     if ((b.setsWon - b.setsLost) !== (a.setsWon - a.setsLost)) return (b.setsWon - b.setsLost) - (a.setsWon - a.setsLost);
     if (b.setsWon !== a.setsWon) return b.setsWon - a.setsWon;
+    const aHeadToHeadWins = headToHeadWinsByPlayerId.get(a.playerId) ?? 0;
+    const bHeadToHeadWins = headToHeadWinsByPlayerId.get(b.playerId) ?? 0;
+    if (bHeadToHeadWins !== aHeadToHeadWins) return bHeadToHeadWins - aHeadToHeadWins;
     const nameOrder = a.playerName.localeCompare(b.playerName, 'hu');
     if (nameOrder !== 0) return nameOrder;
     return a.playerId.localeCompare(b.playerId, 'hu');
   });
 
-  standings.forEach((row, index) => {
-    row.position = index + 1;
+  let position = 0;
+  let previousKey = '';
+
+  standings.forEach((row) => {
+    const key = [
+      row.basePoints,
+      row.wins,
+      row.setDifference,
+      row.setsWon,
+      headToHeadWinsByPlayerId.get(row.playerId) ?? 0,
+    ].join('|');
+
+    if (key !== previousKey) {
+      position += 1;
+      previousKey = key;
+    }
+
+    row.position = position;
   });
 
   return standings;

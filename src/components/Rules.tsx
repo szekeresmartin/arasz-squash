@@ -306,11 +306,11 @@ const SECTIONS: Section[] = [
       },
       {
         type: 'ordered',
-        items: ['több megnyert mérkőzés;', 'jobb szettarány;', 'több megnyert szett;', 'névsor szerinti sorrend.'],
+        items: ['több megnyert mérkőzés;', 'jobb szettarány;', 'több megnyert szett;', 'egymás elleni eredmény, majd névsor szerinti sorrend.'],
       },
       {
         type: 'paragraph',
-        text: 'Azonos pontszám és részeredmény esetén nincs azonos helyezés: a névsor szerinti sorrend dönt.',
+        text: 'Ha minden összehasonlított mutató teljesen egyezik és nincs egymás elleni eredmény, azonos helyezés jár.',
       },
       {
         type: 'paragraph',

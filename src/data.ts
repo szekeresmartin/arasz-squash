@@ -46,7 +46,7 @@ const LEAGUE_SLUGS = ['a-liga', 'b-liga', 'c-liga', 'd-liga', 'e-liga'] as const
 
 const RULE_TEXT = `A liga meccsre a WSF szabályrendszere vonatkozik, minden labdamenet pontot ér és 11 pontig tart egy szett. 10-10 után két pont különbséggel lehet nyerni. A mérkőzés öt lejátszott szettből áll.
 Pontozás: Győzelemért 5 pont, vereségért 2/3 szett aránynál 3 pont, 1/4 szett aránynál 2 pont, 0/5 szett aránynál 1 pont, játék nélkül 0 pont jár.
-Visszalépő játékos esetén a pontok elosztásáról a versenybizottság dönt a sportszerűség elve alapján. Ha valakivel többszöri próbálkozás ellenére sem sikerül időpontot egyeztetni,(és ennek nyoma van a viber csoportban) akkor a rendezőség egyedi elbírálása alapján is jár az 5 pont játék nélkül. Egyenlő pontszám és részeredmény esetén a megnyert mérkőzések száma, a jobb szett arány, megnyert szettek száma, majd a névsor szerinti sorrend dönt. Azonos helyezést nem alkalmazunk.(a megnyert szetteket, csak lejátszott mérkőzéseknél vesszük alapul, tehát ha az ellenfél nem tudta lejátszani a meccsét sérülés miatt, akkor két játékos eredményének összehasonlításánál a megnyert szetteket nem veszük számításba egyik félnél sem, de a pontokat természetesen igen)
+Visszalépő játékos esetén a pontok elosztásáról a versenybizottság dönt a sportszerűség elve alapján. Ha valakivel többszöri próbálkozás ellenére sem sikerül időpontot egyeztetni,(és ennek nyoma van a viber csoportban) akkor a rendezőség egyedi elbírálása alapján is jár az 5 pont játék nélkül. Egyenlő pontszám, győzelmi szám, szettkülönbség és megnyert szett esetén az egymás elleni eredmény dönt, ennek hiányában a névsor szerinti sorrend érvényes. Ha minden összehasonlított mutató teljesen egyezik és nincs egymás elleni eredmény, azonos helyezés jár.(a megnyert szetteket, csak lejátszott mérkőzéseknél vesszük alapul, tehát ha az ellenfél nem tudta lejátszani a meccsét sérülés miatt, akkor két játékos eredményének összehasonlításánál a megnyert szetteket nem veszük számításba egyik félnél sem, de a pontokat természetesen igen)
 Fontos, hogy küzdj minden szettért, mert a végén sokszor számít, hogy hány szettet tudtál megnyerni és ezen múlhat a helyezésed a ligában.
 Labda: "A" ligában 2 sárga pöttyös labda az alap! Ettől eltérni kétféleképpen lehet: 1. Amennyiben mindkét játékos beleegyezik úgy használható a piros pöttyös labda is.    2. Az +50 feletti játékosok kérhetik a piros labdát meccslabdának. 
 B - C - D - E  ligában az alap labda az 1 piros pöttyös. Amennyiben mindkét játékos beleegyezik úgy használható bármelyik típus.`;
@@ -239,6 +239,7 @@ export function getLeagueSlug(leagueId: string) {
 
 export function calculateStandings(players: Player[], matches: Match[], results: Result[]): Standing[] {
   const playerRows = new Map<string, Standing>();
+  const headToHeadWinsByPlayerId = new Map<string, number>();
 
   for (const player of players) {
     playerRows.set(player.id, {
@@ -280,6 +281,12 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     return loserSets + 1;
   };
 
+  const getPairKey = (player1Id: string, player2Id: string) => {
+    return player1Id < player2Id ? `${player1Id}::${player2Id}` : `${player2Id}::${player1Id}`;
+  };
+
+  const pairWins = new Map<string, { player1Id: string; player2Id: string; player1Wins: number; player2Wins: number }>();
+
   for (const result of approvedResults) {
     const row1 = playerRows.get(result.player1Id);
     const row2 = playerRows.get(result.player2Id);
@@ -303,16 +310,61 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     row1.basePoints += getBasePointsForPlayer(result, true);
     row2.basePoints += getBasePointsForPlayer(result, false);
 
+    const pairKey = getPairKey(result.player1Id, result.player2Id);
+    const pair = pairWins.get(pairKey) ?? {
+      player1Id: result.player1Id,
+      player2Id: result.player2Id,
+      player1Wins: 0,
+      player2Wins: 0,
+    };
+
     if (row1Won) {
       row1.wins += 1;
       row1.form.push('W');
       row2.losses += 1;
       row2.form.push('L');
+      if (pair.player1Id === result.player1Id) {
+        pair.player1Wins += 1;
+      } else {
+        pair.player2Wins += 1;
+      }
     } else if (row2Won) {
       row2.wins += 1;
       row2.form.push('W');
       row1.losses += 1;
       row1.form.push('L');
+      if (pair.player1Id === result.player1Id) {
+        pair.player2Wins += 1;
+      } else {
+        pair.player1Wins += 1;
+      }
+    }
+
+    pairWins.set(pairKey, pair);
+  }
+
+  for (const pair of pairWins.values()) {
+    const row1 = playerRows.get(pair.player1Id);
+    const row2 = playerRows.get(pair.player2Id);
+
+    if (!row1 || !row2) {
+      continue;
+    }
+
+    const sameRankingStats =
+      row1.basePoints === row2.basePoints &&
+      row1.wins === row2.wins &&
+      (row1.setsWon - row1.setsLost) === (row2.setsWon - row2.setsLost) &&
+      row1.setsWon === row2.setsWon;
+
+    if (!sameRankingStats) {
+      continue;
+    }
+
+    if (pair.player1Wins > pair.player2Wins) {
+      headToHeadWinsByPlayerId.set(pair.player1Id, (headToHeadWinsByPlayerId.get(pair.player1Id) ?? 0) + 1);
+    } else if (pair.player2Wins > pair.player1Wins) {
+      headToHeadWinsByPlayerId.set(pair.player2Id, (headToHeadWinsByPlayerId.get(pair.player2Id) ?? 0) + 1);
     }
   }
 
@@ -331,13 +383,29 @@ export function calculateStandings(players: Player[], matches: Match[], results:
     if (b.wins !== a.wins) return b.wins - a.wins;
     if (b.setDifference !== a.setDifference) return b.setDifference - a.setDifference;
     if (b.setsWon !== a.setsWon) return b.setsWon - a.setsWon;
+    const aHeadToHeadWins = headToHeadWinsByPlayerId.get(a.playerId) ?? 0;
+    const bHeadToHeadWins = headToHeadWinsByPlayerId.get(b.playerId) ?? 0;
+    if (bHeadToHeadWins !== aHeadToHeadWins) return bHeadToHeadWins - aHeadToHeadWins;
     const nameOrder = a.playerName.localeCompare(b.playerName, 'hu');
     if (nameOrder !== 0) return nameOrder;
     return a.playerId.localeCompare(b.playerId, 'hu');
   });
 
-  return standings.map((row, index) => ({
-    ...row,
-    position: index + 1,
-  }));
+  let currentPosition = 0;
+  let previousKey = '';
+
+  return standings.map((row) => {
+    const headToHead = headToHeadWinsByPlayerId.get(row.playerId) ?? 0;
+    const key = `${row.basePoints}|${row.wins}|${row.setDifference}|${row.setsWon}|${headToHead}`;
+
+    if (key !== previousKey) {
+      currentPosition += 1;
+      previousKey = key;
+    }
+
+    return {
+      ...row,
+      position: currentPosition,
+    };
+  });
 }

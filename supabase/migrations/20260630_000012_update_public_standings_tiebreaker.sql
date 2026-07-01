@@ -1,4 +1,4 @@
--- Public standings view with deterministic alphabetical tie-breaking.
+-- Public standings view with deterministic alphabetical tie-breaking and shared placement for exact ties.
 
 create or replace view public.public_standings as
 with active_players as (
@@ -99,6 +99,62 @@ player_stats as (
    and pe.player_id = ap.player_id
   group by ap.league_id, ap.player_id, ap.player_name
 ),
+pair_results as (
+  select
+    r.league_id,
+    least(r.player1_id, r.player2_id) as player_a_id,
+    greatest(r.player1_id, r.player2_id) as player_b_id,
+    count(*) as direct_count,
+    max(
+      case
+        when r.player1_id = least(r.player1_id, r.player2_id) then r.normalized_sets_won
+        else r.normalized_sets_lost
+      end
+    ) as a_sets,
+    max(
+      case
+        when r.player1_id = least(r.player1_id, r.player2_id) then r.normalized_sets_lost
+        else r.normalized_sets_won
+      end
+    ) as b_sets
+  from ordered_results r
+  group by
+    r.league_id,
+    least(r.player1_id, r.player2_id),
+    greatest(r.player1_id, r.player2_id)
+),
+pair_winners as (
+  select
+    league_id,
+    player_a_id,
+    player_b_id,
+    case
+      when direct_count = 1 and a_sets <> b_sets then case when a_sets > b_sets then player_a_id else player_b_id end
+      else null
+    end as winner_id
+  from pair_results
+),
+tie_priority as (
+  select
+    ps1.league_id,
+    ps1.player_id,
+    coalesce(count(*) filter (where pw.winner_id = ps1.player_id), 0) as head_to_head_wins
+  from player_stats ps1
+  left join player_stats ps2
+    on ps2.league_id = ps1.league_id
+   and ps2.player_id <> ps1.player_id
+   and ps2.points = ps1.points
+   and ps2.wins = ps1.wins
+   and ps2.sets_won - ps2.sets_lost = ps1.sets_won - ps1.sets_lost
+   and ps2.sets_won = ps1.sets_won
+  left join pair_winners pw
+    on pw.league_id = ps1.league_id
+   and (
+     (pw.player_a_id = ps1.player_id and pw.player_b_id = ps2.player_id)
+     or (pw.player_a_id = ps2.player_id and pw.player_b_id = ps1.player_id)
+   )
+  group by ps1.league_id, ps1.player_id
+),
 ranked as (
   select
     ps.league_id,
@@ -115,16 +171,20 @@ ranked as (
     case
       when coalesce(cardinality(ps.form_all), 0) > 4 then ps.form_all[(cardinality(ps.form_all) - 3):cardinality(ps.form_all)]
       else ps.form_all
-    end as form
+    end as form,
+    coalesce(tp.head_to_head_wins, 0) as head_to_head_wins
   from player_stats ps
+  left join tie_priority tp
+    on tp.league_id = ps.league_id
+   and tp.player_id = ps.player_id
 )
 select
   league_id,
   player_id,
   player_name,
-  row_number() over (
+  dense_rank() over (
     partition by league_id
-    order by points desc, wins desc, set_difference desc, sets_won desc, player_name asc, player_id asc
+    order by points desc, wins desc, set_difference desc, sets_won desc, head_to_head_wins desc
   ) as position,
   matches_played,
   wins,

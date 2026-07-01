@@ -532,7 +532,7 @@ export default function PublicLeagues({
           
           <div className="mt-8 border-t border-gray-100 pt-4 flex flex-col sm:flex-row justify-between text-xs text-gray-400 font-mono gap-2">
             <span>Győzelem = 5 pont | Vereség: 2/3 = 3, 1/4 = 2, 0/5 = 1, játék nélkül = 0</span>
-            <span>Azonos pontnál a győzelmek száma, a szettkülönbség, majd a névsor szerinti sorrend dönt.</span>
+            <span>Azonos pontnál a győzelmek száma, a szettkülönbség, a megnyert szettek és az egymás elleni eredmény dönt, teljes egyezésnél pedig azonos a helyezés.</span>
           </div>
           {approvedLeagueResults.length === 0 && (
             <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-500">
