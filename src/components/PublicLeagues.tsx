@@ -4,6 +4,7 @@ import { Trophy, Calendar, Users, FileText, ArrowLeft, Star, MapPin, Eye, CheckC
 import { calculateStandings } from '../data';
 import SubmitResult from './SubmitResult';
 import { getPublicLeagueDataCache, loadPublicLeagueData, type PublicLeagueData } from '../lib/public-leagues';
+import { getMatchDisplayPlayerIds } from '../lib/match-order';
 import type { SubmitMatchResultOutcome } from '../lib/result-submissions';
 
 interface PublicLeaguesProps {
@@ -575,6 +576,7 @@ export default function PublicLeagues({
                       const isApproved = match.status === 'Jóváhagyva';
                       const isPlanned = match.status === 'Tervezett';
                       const score = match.submittedScore;
+                      const [displayPlayer1Id, displayPlayer2Id] = getMatchDisplayPlayerIds(match);
 
                       return (
                         <div key={match.id} className="p-6 flex flex-col md:flex-row justify-between gap-6 hover:bg-gray-50/20 transition-colors">
@@ -611,13 +613,13 @@ export default function PublicLeagues({
                               <div className="sm:col-span-5 flex items-center gap-2">
                                 <div className="h-6 w-1 bg-gray-300 rounded-xs"></div>
                                 <span className={`text-base font-semibold ${isApproved && score && score.player1Sets > score.player2Sets ? 'text-brand-red font-bold' : 'text-gray-800'}`}>
-                                  {getPlayerName(match.player1Id)}
+                                  {getPlayerName(displayPlayer1Id)}
                                 </span>
                               </div>
                               <div className="sm:col-span-2 text-center text-xs font-semibold text-gray-400 italic">vs</div>
                               <div className="sm:col-span-5 flex items-center gap-2 sm:justify-end">
                                 <span className={`text-base font-semibold ${isApproved && score && score.player2Sets > score.player1Sets ? 'text-brand-red font-bold' : 'text-gray-800'}`}>
-                                  {getPlayerName(match.player2Id)}
+                                  {getPlayerName(displayPlayer2Id)}
                                 </span>
                                 <div className="hidden sm:block h-6 w-1 bg-gray-300 rounded-xs"></div>
                               </div>

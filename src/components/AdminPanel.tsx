@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Player, League, Match, Sponsor, MatchScore } from '../types';
+import { getMatchDisplayPlayerIds } from '../lib/match-order';
 import { 
   Trophy, Users, Calendar, CheckCircle2, XCircle, Edit3, Save, Plus, 
   Trash2, Upload, FileText, AlertTriangle, ShieldCheck, Landmark, 
@@ -1048,6 +1049,7 @@ export default function AdminPanel({
               const score = match.submittedScore;
               const isEditing = editingSubId === match.id;
               const isCustomSubmission = match.id.startsWith('m_sub_');
+              const [displayPlayer1Id, displayPlayer2Id] = getMatchDisplayPlayerIds(match);
 
               return (
                 <div key={match.id} className="bg-white border rounded-xl overflow-hidden shadow-xs border-amber-200">
@@ -1074,11 +1076,11 @@ export default function AdminPanel({
                         <p className="text-xs font-mono font-bold text-amber-700 uppercase">Eredmény javítása / szerkesztése</p>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <span className="text-xs text-gray-500 font-semibold">{getPlayerName(match.player1Id)} szettjei:</span>
+                            <span className="text-xs text-gray-500 font-semibold">{getPlayerName(displayPlayer1Id)} szettjei:</span>
                             <input type="number" min="0" max="3" value={editP1Sets} onChange={(e) => setEditP1Sets(parseInt(e.target.value, 10) || 0)} className="bg-white border rounded px-3 py-1.5 text-xs font-mono font-bold w-full" />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-xs text-gray-500 font-semibold">{getPlayerName(match.player2Id)} szettjei:</span>
+                            <span className="text-xs text-gray-500 font-semibold">{getPlayerName(displayPlayer2Id)} szettjei:</span>
                             <input type="number" min="0" max="3" value={editP2Sets} onChange={(e) => setEditP2Sets(parseInt(e.target.value, 10) || 0)} className="bg-white border rounded px-3 py-1.5 text-xs font-mono font-bold w-full" />
                           </div>
                         </div>
@@ -1106,8 +1108,8 @@ export default function AdminPanel({
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-4">
                             <div className="space-y-1">
-                              <p className="text-base font-bold text-gray-900">{getPlayerName(match.player1Id)}</p>
-                              <p className="text-base font-bold text-gray-900">{getPlayerName(match.player2Id)}</p>
+                              <p className="text-base font-bold text-gray-900">{getPlayerName(displayPlayer1Id)}</p>
+                              <p className="text-base font-bold text-gray-900">{getPlayerName(displayPlayer2Id)}</p>
                             </div>
                             <div className="bg-brand-red text-white text-lg font-mono font-black py-2 px-4 rounded-xl">
                               {score ? `${score.player1Sets} : ${score.player2Sets}` : '?:?'}
@@ -1138,7 +1140,7 @@ export default function AdminPanel({
                           </div>
                         </div>
 
-                        <div className="flex sm:flex-row md:flex-col justify-end gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+                        <div className="flex flex-col sm:flex-row md:flex-col justify-end gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
                           <button onClick={() => onApproveMatch(match.id)} className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs font-mono uppercase tracking-wider shadow-sm cursor-pointer" id={`approve-${match.id}`}>
                             <CheckCircle2 className="w-4 h-4" />
                             Jóváhagyás
@@ -1174,6 +1176,7 @@ export default function AdminPanel({
             {approvedMatches.map((match) => {
               const leagueName = leagues.find(l => l.id === match.leagueId)?.name || 'Liga';
               const score = match.submittedScore;
+              const [displayPlayer1Id, displayPlayer2Id] = getMatchDisplayPlayerIds(match);
               return (
                 <div key={match.id} className="bg-white border rounded-xl overflow-hidden shadow-xs">
                   <div className="bg-gray-50 border-b px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1190,8 +1193,8 @@ export default function AdminPanel({
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-4">
                           <div className="space-y-1">
-                            <p className="text-base font-bold text-gray-900">{getPlayerName(match.player1Id)}</p>
-                            <p className="text-base font-bold text-gray-900">{getPlayerName(match.player2Id)}</p>
+                            <p className="text-base font-bold text-gray-900">{getPlayerName(displayPlayer1Id)}</p>
+                            <p className="text-base font-bold text-gray-900">{getPlayerName(displayPlayer2Id)}</p>
                           </div>
                           <div className="bg-brand-red text-white text-lg font-mono font-black py-2 px-4 rounded-xl">
                             {score ? `${score.player1Sets} : ${score.player2Sets}` : '?:?'}

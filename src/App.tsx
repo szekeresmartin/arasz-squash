@@ -27,6 +27,7 @@ import {
 } from './lib/result-submissions';
 import { invalidatePublicLeagueDataCache } from './lib/public-leagues';
 import { invalidateLatestPublicResultsCache } from './lib/public-results';
+import { getMatchDisplayPlayerIds } from './lib/match-order';
 import {
   getLeaguePath,
   resolveViewFromPath,
@@ -246,13 +247,14 @@ export default function App() {
 
   const buildApprovedResult = (match: Match, score: MatchScore): Result => {
     const nowIso = new Date().toISOString();
+    const [player1Id, player2Id] = getMatchDisplayPlayerIds(match);
 
     return {
       id: match.resultId || `r_${match.id}`,
       leagueId: match.leagueId,
       matchId: match.id,
-      player1Id: match.player1Id,
-      player2Id: match.player2Id,
+      player1Id,
+      player2Id,
       sourceSheet: match.submissionType === 'custom' ? 'Kézi beküldés' : 'Webes beküldés',
       sourceCells: match.sourceCell ? [match.sourceCell] : [],
       rawHomeToken: `${score.player1Sets}:${score.player2Sets}`,
@@ -312,6 +314,8 @@ export default function App() {
           finalScore: normalizedScore,
           submitterName: payload.submitterName,
           comment: payload.comment,
+          submittedPlayer1Id: payload.player1Id,
+          submittedPlayer2Id: payload.player2Id,
         });
       } catch (error) {
         const submissionError = classifySubmissionError(error);
@@ -328,6 +332,8 @@ export default function App() {
             ...match,
             status: 'Beküldve',
             submittedScore: normalizedScore,
+            submittedPlayer1Id: payload.player1Id,
+            submittedPlayer2Id: payload.player2Id,
             submitterName: payload.submitterName,
             submitterContact: undefined,
             comment: payload.comment,
@@ -352,6 +358,8 @@ export default function App() {
           ...match,
           status: 'Beküldve',
           submittedScore: normalizedScore,
+          submittedPlayer1Id: payload.player1Id,
+          submittedPlayer2Id: payload.player2Id,
           submitterName: payload.submitterName,
           submitterContact: undefined,
           comment: payload.comment,
@@ -384,6 +392,8 @@ export default function App() {
         return {
           ...match,
           submittedScore: normalizedScore,
+          submittedPlayer1Id: payload.player1Id,
+          submittedPlayer2Id: payload.player2Id,
           submitterName: payload.submitterName,
           submitterContact: undefined,
           comment: payload.comment,
@@ -405,6 +415,8 @@ export default function App() {
         round: 0,
         player1Id: payload.player1Id,
         player2Id: payload.player2Id,
+        submittedPlayer1Id: payload.player1Id,
+        submittedPlayer2Id: payload.player2Id,
         status: 'Beküldve',
         submittedScore: normalizedScore,
         submitterName: payload.submitterName,
@@ -456,6 +468,8 @@ export default function App() {
           ...m,
           status: 'Jóváhagyva',
           submittedScore: approvedScore,
+          submittedPlayer1Id: m.submittedPlayer1Id,
+          submittedPlayer2Id: m.submittedPlayer2Id,
         };
       }));
 
@@ -482,6 +496,8 @@ export default function App() {
         ...m,
         status: 'Jóváhagyva',
         submittedScore: approvedScore,
+        submittedPlayer1Id: m.submittedPlayer1Id,
+        submittedPlayer2Id: m.submittedPlayer2Id,
       };
     }));
 
@@ -514,6 +530,8 @@ export default function App() {
             ...m,
             status: 'Tervezett',
             submittedScore: undefined,
+            submittedPlayer1Id: undefined,
+            submittedPlayer2Id: undefined,
             submitterName: undefined,
             submitterContact: undefined,
             comment: undefined,
@@ -575,6 +593,8 @@ export default function App() {
           ...m,
           status: 'Tervezett',
           submittedScore: undefined,
+          submittedPlayer1Id: undefined,
+          submittedPlayer2Id: undefined,
           submitterName: undefined,
           submitterContact: undefined,
           comment: undefined,

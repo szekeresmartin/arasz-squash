@@ -10,6 +10,8 @@ export type SubmitMatchResultInput = {
   finalScore: MatchScore;
   submitterName: string;
   comment?: string;
+  submittedPlayer1Id?: string;
+  submittedPlayer2Id?: string;
 };
 
 export type ResetMatchSubmissionInput = {
@@ -90,6 +92,8 @@ export async function submitMatchResultToSupabase(input: SubmitMatchResultInput)
       p_submitted_score_away: input.finalScore.player2Sets,
       p_submitter_name: input.submitterName,
       p_comment: input.comment ?? null,
+      p_submitted_player1_id: input.submittedPlayer1Id ?? null,
+      p_submitted_player2_id: input.submittedPlayer2Id ?? null,
     }),
   });
 

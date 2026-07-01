@@ -30,6 +30,8 @@ type SupabaseMatchRow = {
   league_id: string;
   player1_id: string;
   player2_id: string;
+  submitted_player1_id?: string | null;
+  submitted_player2_id?: string | null;
   round_number: number;
   source_cell: string | null;
   reverse_source_cell: string | null;
@@ -183,6 +185,8 @@ function mapMatchRow(row: SupabaseMatchRow, approvedResultByMatchId: Map<string,
     round: row.round_number,
     player1Id: row.player1_id,
     player2Id: row.player2_id,
+    submittedPlayer1Id: row.submitted_player1_id ?? undefined,
+    submittedPlayer2Id: row.submitted_player2_id ?? undefined,
     status: mapMatchStatus(row.status),
     submittedScore,
     submittedAt: row.submitted_at ?? undefined,
@@ -344,7 +348,7 @@ async function fetchPublicLeagueDataFromSupabase(): Promise<PublicLeagueData> {
 
 async function fetchPublicMatchesRows(): Promise<SupabaseMatchRow[]> {
   const basePath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at&order=league_id.asc,round_number.asc,id.asc';
-  const extendedPath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at,submitted_by,submitter_name,submitter_contact,comment,approved_by&order=league_id.asc,round_number.asc,id.asc';
+  const extendedPath = 'public_matches?select=id,league_id,player1_id,player2_id,submitted_player1_id,submitted_player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at,submitted_by,submitter_name,submitter_contact,comment,approved_by&order=league_id.asc,round_number.asc,id.asc';
 
   try {
     return await fetchSupabaseRows<SupabaseMatchRow>(extendedPath);

@@ -31,6 +31,8 @@ export interface Match {
   round: number; // Forduló száma
   player1Id: string;
   player2Id: string;
+  submittedPlayer1Id?: string;
+  submittedPlayer2Id?: string;
   date?: string;
   court?: string; // Pálya vagy Helyszínpl. "1-es pálya"
   status: MatchStatus;
