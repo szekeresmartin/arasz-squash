@@ -13,7 +13,6 @@
     "test": "npm run lint && npm run build && npm run smoke",
     "import:excel": "node scripts/import-excel.ts",
     "import:curated-viber": "node scripts/import-curated-viber-results.ts",
-    "seed:app-state": "tsx scripts/seed-app-state.ts",
     "seed:normalized": "tsx scripts/seed-normalized-data.ts"
   },
   "dependencies": {

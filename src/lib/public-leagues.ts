@@ -1,5 +1,5 @@
 import { calculateStandings } from '../data';
-import { League, Match, Player, Result, Standing } from '../types';
+import { League, Match, Player, Result, Sponsor, Standing } from '../types';
 
 type SupabaseLeagueRow = {
   id: string;
@@ -46,6 +46,18 @@ type SupabaseMatchRow = {
   submitter_contact?: string | null;
   comment?: string | null;
   approved_by?: string | null;
+  match_date?: string | null;
+  court?: string | null;
+};
+
+type SupabaseSponsorRow = {
+  id: string;
+  name: string;
+  logo_text: string;
+  logo_path: string | null;
+  website_url: string | null;
+  color_hex: string;
+  is_active: boolean;
 };
 
 type SupabaseResultRow = {
@@ -94,6 +106,7 @@ export type PublicLeagueData = {
   matches: Match[];
   results: Result[];
   standings: Standing[];
+  sponsors: Sponsor[];
 };
 
 let publicLeagueDataCache: PublicLeagueData | null = null;
@@ -200,6 +213,20 @@ function mapMatchRow(row: SupabaseMatchRow, approvedResultByMatchId: Map<string,
     reverseSourceCell: row.reverse_source_cell ?? undefined,
     submissionType: row.submission_type ?? undefined,
     resultId: approvedResult?.id,
+    date: row.match_date ?? undefined,
+    court: row.court ?? undefined,
+  };
+}
+
+function mapSponsorRow(row: SupabaseSponsorRow): Sponsor {
+  return {
+    id: row.id,
+    name: row.name,
+    logoText: row.logo_text,
+    logoPath: row.logo_path ?? undefined,
+    websiteUrl: row.website_url ?? undefined,
+    colorHex: row.color_hex,
+    isActive: row.is_active,
   };
 }
 
@@ -291,12 +318,13 @@ async function fetchPublicLeagueDataFromSupabase(): Promise<PublicLeagueData> {
     fetchSupabaseRows<SupabasePlayerRow>('public_players?select=id,league_id,name,source_sheet_name,header_cell,row_cell,order_index,active&order=league_id.asc,order_index.asc'),
     fetchPublicMatchesRows(),
     fetchSupabaseRows<SupabaseResultRow>('public_results?select=id,league_id,match_id,player1_id,player2_id,source_sheet,source_cells,raw_home_token,raw_away_token,normalized_sets_won,normalized_sets_lost,kind,status,played_on_court,is_forfeit,imported_at,submitted_at,approved_at,source,source_reference,normalized_token&order=league_id.asc,created_at.desc,id.desc'),
+    fetchSupabaseRows<SupabaseSponsorRow>('sponsors?select=id,name,logo_text,logo_path,website_url,color_hex,is_active,display_order&order=display_order.asc'),
   ]);
   const standingsPromise = fetchSupabaseRows<SupabaseStandingRow>(
     'public_standings?select=league_id,player_id,player_name,position,matches_played,wins,losses,sets_won,sets_lost,set_difference,points,ranking_score,form&order=league_id.asc,position.asc,player_name.asc',
   ).catch(() => null);
 
-  const [leagueRows, playerRows, matchRows, resultRows] = await corePromise;
+  const [leagueRows, playerRows, matchRows, resultRows, sponsorRows] = await corePromise;
   const remoteStandings = await standingsPromise;
 
   const playerIdsByLeagueId = new Map<string, string[]>();
@@ -343,12 +371,13 @@ async function fetchPublicLeagueDataFromSupabase(): Promise<PublicLeagueData> {
     matches,
     results,
     standings,
+    sponsors: sponsorRows.map(mapSponsorRow),
   };
 }
 
 async function fetchPublicMatchesRows(): Promise<SupabaseMatchRow[]> {
   const basePath = 'public_matches?select=id,league_id,player1_id,player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at&order=league_id.asc,round_number.asc,id.asc';
-  const extendedPath = 'public_matches?select=id,league_id,player1_id,player2_id,submitted_player1_id,submitted_player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at,submitted_by,submitter_name,submitter_contact,comment,approved_by&order=league_id.asc,round_number.asc,id.asc';
+  const extendedPath = 'public_matches?select=id,league_id,player1_id,player2_id,submitted_player1_id,submitted_player2_id,round_number,source_cell,reverse_source_cell,status,submission_type,submitted_score_home,submitted_score_away,submitted_at,approved_at,submitted_by,submitter_name,submitter_contact,comment,approved_by,match_date,court&order=league_id.asc,round_number.asc,id.asc';
 
   try {
     return await fetchSupabaseRows<SupabaseMatchRow>(extendedPath);
@@ -359,6 +388,33 @@ async function fetchPublicMatchesRows(): Promise<SupabaseMatchRow[]> {
     }
 
     throw error;
+  }
+}
+
+const LOCAL_SNAPSHOT_KEY = 'arasz-squash-public-data-snapshot-v1';
+
+export function readPublicLeagueDataSnapshot(): PublicLeagueData | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_SNAPSHOT_KEY);
+    return raw ? JSON.parse(raw) as PublicLeagueData : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePublicLeagueDataSnapshot(data: PublicLeagueData) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify(data));
+  } catch {
+    // A gyorsítótár írása nem kritikus, hiba esetén egyszerűen kihagyjuk.
   }
 }
 
@@ -376,6 +432,7 @@ export async function loadPublicLeagueData(): Promise<PublicLeagueData> {
   try {
     publicLeagueDataCache = await publicLeagueDataPromise;
     publicLeagueDataIsStale = false;
+    writePublicLeagueDataSnapshot(publicLeagueDataCache);
     return publicLeagueDataCache;
   } finally {
     publicLeagueDataPromise = null;

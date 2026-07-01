@@ -11,33 +11,33 @@ interface AdminPanelProps {
   players: Player[];
   leagues: League[];
   matches: Match[];
-  approvalMatches?: Match[];
   sponsors: Sponsor[];
-  onAddPlayer: (p: Player) => void;
-  onUpdatePlayer: (p: Player) => void;
-  onDeletePlayer: (id: string) => void;
-  onAddLeague: (l: League) => void;
-  onUpdateLeague: (l: League) => void;
-  onAddMatches: (m: Match[]) => void;
+  onAddPlayer: (p: Player, leagueId: string) => Promise<void>;
+  onUpdatePlayer: (p: Player) => Promise<void>;
+  onDeletePlayer: (id: string) => Promise<void>;
+  onAddLeague: (payload: { name: string; rules: string; isActive: boolean; playerIds: string[] }) => Promise<void>;
+  onUpdateLeague: (l: League) => Promise<void>;
+  onDeleteLeague: (leagueId: string) => Promise<void>;
+  onAddMatches: (m: Match[]) => Promise<void>;
   onApproveMatch: (matchId: string, finalScore?: MatchScore) => void;
   onUpdateMatchSubmission: (matchId: string, finalScore: MatchScore) => void;
   onRejectMatch: (matchId: string) => Promise<void>;
   onDeleteMatch: (matchId: string) => Promise<void>;
-  onUpdateSponsor: (s: Sponsor) => void;
-  onAddSponsor: (s: Sponsor) => void;
+  onUpdateSponsor: (s: Sponsor) => Promise<void>;
+  onAddSponsor: (s: Sponsor) => Promise<void>;
 }
 
 export default function AdminPanel({
   players,
   leagues,
   matches,
-  approvalMatches,
   sponsors,
   onAddPlayer,
   onUpdatePlayer,
   onDeletePlayer,
   onAddLeague,
   onUpdateLeague,
+  onDeleteLeague,
   onAddMatches,
   onApproveMatch,
   onUpdateMatchSubmission,
@@ -46,17 +46,12 @@ export default function AdminPanel({
   onUpdateSponsor,
   onAddSponsor
 }: AdminPanelProps) {
-  
+
   // Belső navigációs fülek az adminon belül
   const [activeAdminTab, setActiveAdminTab] = useState<string>('dashboard');
 
-  const approvalSourceMatches = useMemo(
-    () => approvalMatches ?? matches,
-    [approvalMatches, matches],
-  );
-
   const pendingSubmissions = useMemo(
-    () => approvalSourceMatches
+    () => matches
       .filter(m => m.status === 'Beküldve')
       .slice()
       .sort((a, b) => {
@@ -69,10 +64,10 @@ export default function AdminPanel({
 
         return b.id.localeCompare(a.id);
       }),
-    [approvalSourceMatches],
+    [matches],
   );
   const approvedMatches = useMemo(
-    () => approvalSourceMatches
+    () => matches
       .filter(m => m.status === 'Jóváhagyva')
       .slice()
       .sort((a, b) => {
@@ -85,12 +80,12 @@ export default function AdminPanel({
 
         return b.id.localeCompare(a.id);
       }),
-    [approvalSourceMatches],
+    [matches],
   );
   const activeLeaguesCount = useMemo(() => leagues.filter(l => l.isActive).length, [leagues]);
   const playedMatchesCount = useMemo(
-    () => approvalSourceMatches.filter(m => m.status === 'Jóváhagyva').length,
-    [approvalSourceMatches],
+    () => matches.filter(m => m.status === 'Jóváhagyva').length,
+    [matches],
   );
   const activePlayersCount = players.length;
 
@@ -218,29 +213,30 @@ export default function AdminPanel({
   // SUB-TAB 2: LIGÁK KEZELÉSE
   // ----------------------------------------------------
   const [newLeagueName, setNewLeagueName] = useState('');
-  const [newLeagueSeason, setNewLeagueSeason] = useState('2026 Tavasz / Nyár');
   const [newLeagueRules, setNewLeagueRules] = useState('');
   const [selectedLeaguePlayers, setSelectedLeaguePlayers] = useState<string[]>([]);
   const [isAddingLeague, setIsAddingLeague] = useState(false);
+  const [isSavingLeague, setIsSavingLeague] = useState(false);
 
-  const handleCreateLeague = (e: React.FormEvent) => {
+  const handleCreateLeague = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLeagueName.trim()) return;
 
-    const newL: League = {
-      id: `l_${Date.now()}`,
-      name: newLeagueName,
-      season: newLeagueSeason,
-      rules: newLeagueRules || 'Standard squash liga szabályok érvényesek.',
-      isActive: true,
-      playerIds: selectedLeaguePlayers
-    };
-
-    onAddLeague(newL);
-    setNewLeagueName('');
-    setNewLeagueRules('');
-    setSelectedLeaguePlayers([]);
-    setIsAddingLeague(false);
+    setIsSavingLeague(true);
+    try {
+      await onAddLeague({
+        name: newLeagueName,
+        rules: newLeagueRules || 'Standard squash liga szabályok érvényesek.',
+        isActive: true,
+        playerIds: selectedLeaguePlayers,
+      });
+      setNewLeagueName('');
+      setNewLeagueRules('');
+      setSelectedLeaguePlayers([]);
+      setIsAddingLeague(false);
+    } finally {
+      setIsSavingLeague(false);
+    }
   };
 
   const handleToggleLeaguePlayer = (pId: string) => {
@@ -272,28 +268,17 @@ export default function AdminPanel({
         <form onSubmit={handleCreateLeague} className="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-4 animate-fadeIn">
           <h4 className="font-display font-bold text-sm text-gray-800">Új Squash Bajnokság Létrehozása</h4>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-600">Liga megnevezése *</span>
-              <input
-                type="text"
-                placeholder="Pl. D Liga vagy Junior Liga"
-                value={newLeagueName}
-                onChange={(e) => setNewLeagueName(e.target.value)}
-                className="w-full bg-white border rounded-lg px-3 py-2 text-sm"
-                required
-              />
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-600">Szezon *</span>
-              <input
-                type="text"
-                value={newLeagueSeason}
-                onChange={(e) => setNewLeagueSeason(e.target.value)}
-                className="w-full bg-white border rounded-lg px-3 py-2 text-sm"
-                required
-              />
-            </div>
+          <div className="space-y-1">
+            <span className="text-xs font-semibold text-gray-600">Liga megnevezése *</span>
+            <input
+              type="text"
+              placeholder="Pl. D Liga vagy Junior Liga"
+              value={newLeagueName}
+              onChange={(e) => setNewLeagueName(e.target.value)}
+              className="w-full bg-white border rounded-lg px-3 py-2 text-sm"
+              required
+            />
+            <p className="text-[11px] text-gray-400">Az aktuális szezonhoz kerül automatikusan.</p>
           </div>
 
           <div className="space-y-1">
@@ -338,9 +323,10 @@ export default function AdminPanel({
             </button>
             <button
               type="submit"
-              className="bg-brand-red text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 rounded-lg hover:bg-brand-maroon"
+              disabled={isSavingLeague}
+              className="bg-brand-red text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 rounded-lg hover:bg-brand-maroon disabled:opacity-60"
             >
-              Liga Létrehozása
+              {isSavingLeague ? 'Mentés...' : 'Liga Létrehozása'}
             </button>
           </div>
         </form>
@@ -372,7 +358,7 @@ export default function AdminPanel({
             <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
               <button
                 type="button"
-                onClick={() => onUpdateLeague({ ...l, isActive: !l.isActive })}
+                onClick={() => void onUpdateLeague({ ...l, isActive: !l.isActive })}
                 className="text-[11px] font-mono font-bold text-gray-550 hover:text-brand-red flex items-center gap-1.5"
               >
                 {l.isActive ? (
@@ -385,7 +371,21 @@ export default function AdminPanel({
                   </>
                 )}
               </button>
-              
+
+              {l.playerIds.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(`Biztosan véglegesen törlöd a(z) "${l.name}" ligát? Ez nem vonható vissza.`)) {
+                      void onDeleteLeague(l.id);
+                    }
+                  }}
+                  className="text-[11px] font-mono font-bold text-red-500 hover:text-red-700 flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-4 h-4" /> TÖRLÉS
+                </button>
+              )}
+
               <span className="text-[10px] text-gray-400">ID: {l.id}</span>
             </div>
           </div>
@@ -400,15 +400,18 @@ export default function AdminPanel({
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerPhone, setNewPlayerPhone] = useState('');
   const [newPlayerEmail, setNewPlayerEmail] = useState('');
+  const [newPlayerLeagueId, setNewPlayerLeagueId] = useState('');
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
+  const [isSavingPlayer, setIsSavingPlayer] = useState(false);
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editEmail, setEditEmail] = useState('');
 
-  const handleCreatePlayer = (e: React.FormEvent) => {
+  const handleCreatePlayer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPlayerName.trim()) return;
+    const targetLeagueId = newPlayerLeagueId || leagues[0]?.id;
+    if (!newPlayerName.trim() || !targetLeagueId) return;
 
     const newP: Player = {
       id: `p_${Date.now()}`,
@@ -418,11 +421,16 @@ export default function AdminPanel({
       joinDate: new Date().toISOString().split('T')[0]
     };
 
-    onAddPlayer(newP);
-    setNewPlayerName('');
-    setNewPlayerPhone('');
-    setNewPlayerEmail('');
-    setIsAddingPlayer(false);
+    setIsSavingPlayer(true);
+    try {
+      await onAddPlayer(newP, targetLeagueId);
+      setNewPlayerName('');
+      setNewPlayerPhone('');
+      setNewPlayerEmail('');
+      setIsAddingPlayer(false);
+    } finally {
+      setIsSavingPlayer(false);
+    }
   };
 
   const handleStartEditPlayer = (p: Player) => {
@@ -432,9 +440,9 @@ export default function AdminPanel({
     setEditEmail(p.email || '');
   };
 
-  const handleSavePlayerEdit = (pId: string) => {
+  const handleSavePlayerEdit = async (pId: string) => {
     if (!editName.trim()) return;
-    onUpdatePlayer({
+    await onUpdatePlayer({
       id: pId,
       name: editName,
       phone: editPhone || undefined,
@@ -497,6 +505,19 @@ export default function AdminPanel({
               />
             </div>
           </div>
+          <div className="space-y-1">
+            <span className="text-xs font-semibold text-gray-650">Liga *</span>
+            <select
+              value={newPlayerLeagueId || leagues[0]?.id || ''}
+              onChange={(e) => setNewPlayerLeagueId(e.target.value)}
+              className="w-full bg-white border rounded-lg px-3 py-2 text-sm"
+              required
+            >
+              {leagues.map(l => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
@@ -507,9 +528,10 @@ export default function AdminPanel({
             </button>
             <button
               type="submit"
-              className="bg-brand-red text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 rounded-lg hover:bg-brand-maroon"
+              disabled={isSavingPlayer}
+              className="bg-brand-red text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 rounded-lg hover:bg-brand-maroon disabled:opacity-60"
             >
-              Játékos mentése
+              {isSavingPlayer ? 'Mentés...' : 'Játékos mentése'}
             </button>
           </div>
         </form>
@@ -600,8 +622,8 @@ export default function AdminPanel({
                           </button>
                           <button
                             onClick={() => {
-                              if (window.confirm(`Biztosan törlöd ${p.name} játékost az adatbázisból? Ez törli a ligás bejegyzéseit is.`)) {
-                                onDeletePlayer(p.id);
+                              if (window.confirm(`Biztosan eltávolítod ${p.name} játékost? A korábbi mérkőzései és eredményei megmaradnak, csak a listából tűnik el.`)) {
+                                void onDeletePlayer(p.id);
                               }
                             }}
                             className="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded animate-colors"

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, Trophy, FileText, Home, Award } from 'lucide-react';
 
 const brandLogoSrc = new URL('../../data/aos_logo.png', import.meta.url).href;
-const ontodeFeliratSrc = new URL('../../data/sponsors/ontode_felirat.png', import.meta.url).href;
+const ontodeFeliratSrc = new URL('../../data/sponsors/ontode_felirat.webp', import.meta.url).href;
 
 interface HeaderProps {
   currentView: 'home' | 'leagues' | 'rules' | 'history' | 'admin';

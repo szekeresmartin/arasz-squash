@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Player, League, Match, Standing, Result } from '../types';
+import { Player, Match, Standing } from '../types';
 import { Trophy, Calendar, Users, FileText, ArrowLeft, Star, MapPin, Eye, CheckCircle2, Send, Shield, Award, Orbit } from 'lucide-react';
 import { calculateStandings } from '../data';
 import SubmitResult from './SubmitResult';
@@ -8,10 +8,6 @@ import { getMatchDisplayPlayerIds } from '../lib/match-order';
 import type { SubmitMatchResultOutcome } from '../lib/result-submissions';
 
 interface PublicLeaguesProps {
-  players: Player[];
-  leagues: League[];
-  matches: Match[];
-  results: Result[];
   onSubmitResult: (payload: {
     leagueId: string;
     player1Id: string;
@@ -40,10 +36,6 @@ const LEAGUE_TABS = [
 ] as const;
 
 export default function PublicLeagues({
-  players: legacyPlayers,
-  leagues: legacyLeagues,
-  matches: legacyMatches,
-  results: legacyResults,
   onSubmitResult,
   setView,
   selectedLeagueId,

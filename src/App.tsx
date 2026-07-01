@@ -1,33 +1,41 @@
-import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PublicHome from './components/PublicHome';
 import PublicLeagues from './components/PublicLeagues';
 import SponsorBar from './components/SponsorBar';
-import { Player, League, Match, Sponsor, MatchScore, Result } from './types';
+import { Player, League, Match, MatchScore, Sponsor } from './types';
 import {
-  DEFAULT_PLAYERS,
-  DEFAULT_LEAGUES,
-  DEFAULT_MATCHES,
-  DEFAULT_RESULTS,
-  DEFAULT_SPONSORS,
-  normalizeSponsors,
-} from './data';
-import {
-  hydratePersistedAppState,
-  savePersistedAppState,
-  type PersistedAppState,
-} from './lib/app-state';
+  loadPublicLeagueData,
+  getPublicLeagueDataCache,
+  readPublicLeagueDataSnapshot,
+  invalidatePublicLeagueDataCache,
+  type PublicLeagueData,
+} from './lib/public-leagues';
+import { invalidateLatestPublicResultsCache } from './lib/public-results';
 import {
   classifySubmissionError,
   approveMatchResultOnSupabase,
   resetMatchSubmissionOnSupabase,
   submitMatchResultToSupabase,
+  submitCustomMatchResultToSupabase,
   type SubmitMatchResultOutcome,
 } from './lib/result-submissions';
-import { invalidatePublicLeagueDataCache } from './lib/public-leagues';
-import { invalidateLatestPublicResultsCache } from './lib/public-results';
-import { getMatchDisplayPlayerIds } from './lib/match-order';
+import {
+  createLeague,
+  updateLeague,
+  deleteLeague,
+  createPlayer,
+  updatePlayer,
+  deactivatePlayer,
+  bulkInsertMatches,
+  deleteCustomMatch,
+  updateSubmittedScore,
+  createSponsor,
+  updateSponsor,
+  classifyAdminDataError,
+} from './lib/admin-data';
+import { readStoredAdminSession, ensureFreshAdminSession, signOutAdmin, type AdminSession } from './lib/admin-auth';
 import {
   getLeaguePath,
   resolveViewFromPath,
@@ -38,59 +46,35 @@ import {
 const Rules = lazy(() => import('./components/Rules'));
 const LeagueHistory = lazy(() => import('./components/LeagueHistory'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
-const TEST_LEAGUE_ID = 'league-e';
-const TEST_PLAYER_1_ID = 'player-league-e-7-szekeres-martin';
-const TEST_PLAYER_2_ID = 'player-league-e-6-kov-cs-zsolt';
+const AdminLogin = lazy(() => import('./components/AdminLogin'));
+
+const EMPTY_PUBLIC_DATA: PublicLeagueData = {
+  leagues: [],
+  players: [],
+  matches: [],
+  results: [],
+  standings: [],
+  sponsors: [],
+};
+
+const isSyntheticCustomMatch = (match: Match) => match.submissionType === 'custom' || match.id.startsWith('m_sub_');
 
 export default function App() {
-  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
-  const [leagues, setLeagues] = useState<League[]>(DEFAULT_LEAGUES);
-  const [matches, setMatches] = useState<Match[]>(DEFAULT_MATCHES);
-  const [results, setResults] = useState<Result[]>(DEFAULT_RESULTS);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(normalizeSponsors(DEFAULT_SPONSORS));
+  const [publicData, setPublicData] = useState<PublicLeagueData>(
+    () => getPublicLeagueDataCache() ?? readPublicLeagueDataSnapshot() ?? EMPTY_PUBLIC_DATA,
+  );
+  const { leagues, players, matches, results, sponsors } = publicData;
 
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [selectedSubTab, setSelectedSubTab] = useState<string>('tabella');
-  const [syncStatus, setSyncStatus] = useState<'syncing' | 'ready' | 'offline'>('syncing');
-  const [hasCompletedInitialHydration, setHasCompletedInitialHydration] = useState(false);
+  const [dataStatus, setDataStatus] = useState<'loading' | 'ready' | 'error'>(
+    () => (getPublicLeagueDataCache() ?? readPublicLeagueDataSnapshot() ? 'ready' : 'loading'),
+  );
   const [adminActionError, setAdminActionError] = useState<string | null>(null);
   const [publicLeagueDataRevision, setPublicLeagueDataRevision] = useState(0);
   const [latestPublicResultsRevision, setLatestPublicResultsRevision] = useState(0);
-  const skipNextAutosaveRef = useRef(true);
-  const userMutatedBeforeHydrationRef = useRef(false);
-
-  const applyPersistedState = (persistedState: PersistedAppState) => {
-    setPlayers(persistedState.players);
-    setLeagues(persistedState.leagues);
-    setMatches(persistedState.matches);
-    setResults(persistedState.results);
-    setSponsors(normalizeSponsors(persistedState.sponsors));
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const hydrate = async () => {
-      const hydrated = await hydratePersistedAppState();
-      if (cancelled) {
-        return;
-      }
-
-      if (!userMutatedBeforeHydrationRef.current && hydrated.state) {
-        applyPersistedState(hydrated.state);
-      }
-
-      setSyncStatus(hydrated.source === 'remote' || hydrated.source === 'empty' ? 'ready' : 'offline');
-      setHasCompletedInitialHydration(true);
-    };
-
-    void hydrate();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(() => readStoredAdminSession());
 
   const refreshPublicLeagueData = () => {
     invalidatePublicLeagueDataCache();
@@ -103,31 +87,29 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!hasCompletedInitialHydration) {
-      return;
-    }
+    let cancelled = false;
 
-    const state: PersistedAppState = {
-      players,
-      leagues,
-      matches,
-      results,
-      sponsors,
-    };
+    void loadPublicLeagueData()
+      .then(data => {
+        if (cancelled) {
+          return;
+        }
 
-    if (skipNextAutosaveRef.current) {
-      skipNextAutosaveRef.current = false;
-      return;
-    }
+        setPublicData(data);
+        setDataStatus('ready');
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
 
-    const timeout = window.setTimeout(() => {
-      void savePersistedAppState(state);
-    }, 400);
+        setDataStatus('error');
+      });
 
     return () => {
-      window.clearTimeout(timeout);
+      cancelled = true;
     };
-  }, [players, leagues, matches, results, sponsors, hasCompletedInitialHydration]);
+  }, [publicLeagueDataRevision]);
 
   useEffect(() => {
     const syncViewFromLocation = () => {
@@ -187,107 +169,105 @@ export default function App() {
     }
   };
 
-  const handleAddPlayer = (p: Player) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setPlayers(prev => [p, ...prev]);
+  const withAdminAccessToken = async (): Promise<string> => {
+    if (!adminSession) {
+      throw new Error('Nincs admin munkamenet, jelentkezz be újra.');
+    }
+
+    const freshSession = await ensureFreshAdminSession(adminSession);
+    if (freshSession !== adminSession) {
+      setAdminSession(freshSession);
+    }
+
+    return freshSession.accessToken;
   };
 
-  const handleUpdatePlayer = (updated: Player) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setPlayers(prev => prev.map(p => p.id === updated.id ? updated : p));
+  const handleAddPlayer = async (player: Player, leagueId: string) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await createPlayer(accessToken, player, leagueId);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Játékos hozzáadása sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const handleDeletePlayer = (id: string) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setPlayers(prev => prev.filter(p => p.id !== id));
-    // Elemeltük a ligás regisztrációját is
-    setLeagues(prev => prev.map(l => ({
-      ...l,
-      playerIds: l.playerIds.filter(pId => pId !== id)
-    })));
+  const handleUpdatePlayer = async (updated: Player) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await updatePlayer(accessToken, updated);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Játékos frissítése sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const handleAddLeague = (l: League) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setLeagues(prev => [...prev, l]);
+  const handleDeletePlayer = async (id: string) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await deactivatePlayer(accessToken, id);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Játékos eltávolítása sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const handleUpdateLeague = (updated: League) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setLeagues(prev => prev.map(l => l.id === updated.id ? updated : l));
+  const handleAddLeague = async (payload: { name: string; rules: string; isActive: boolean; playerIds: string[] }) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await createLeague(accessToken, payload, payload.playerIds);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Liga létrehozása sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const handleAddMatches = (newMatches: Match[]) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setMatches(prev => [...prev, ...newMatches]);
+  const handleUpdateLeague = async (updated: League) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await updateLeague(accessToken, updated);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Liga frissítése sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const handleUpdateMatchSubmission = (matchId: string, finalScore: MatchScore) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    const nowIso = new Date().toISOString();
-    setMatches(prev => prev.map(match => {
-      if (match.id !== matchId) {
-        return match;
-      }
-
-      return {
-        ...match,
-        status: 'Beküldve',
-        submittedScore: finalScore,
-        submittedAt: nowIso,
-      };
-    }));
+  const handleDeleteLeague = async (leagueId: string) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await deleteLeague(accessToken, leagueId);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Liga törlése sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const normalizeSubmittedScore = (score: MatchScore): MatchScore => {
-    // A beküldött eredmény már a végeredmény, ezt változatlanul kell
-    // tárolni. A validáció felül ellenőrzi, hogy pontosan 5 szett legyen.
-    return score;
+  const handleAddMatches = async (newMatches: Match[]) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await bulkInsertMatches(accessToken, newMatches);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Sorsolás mentése sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const buildApprovedResult = (match: Match, score: MatchScore): Result => {
-    const nowIso = new Date().toISOString();
-    const [player1Id, player2Id] = getMatchDisplayPlayerIds(match);
-
-    return {
-      id: match.resultId || `r_${match.id}`,
-      leagueId: match.leagueId,
-      matchId: match.id,
-      player1Id,
-      player2Id,
-      sourceSheet: match.submissionType === 'custom' ? 'Kézi beküldés' : 'Webes beküldés',
-      sourceCells: match.sourceCell ? [match.sourceCell] : [],
-      rawHomeToken: `${score.player1Sets}:${score.player2Sets}`,
-      rawAwayToken: undefined,
-      normalizedSetsWon: score.player1Sets,
-      normalizedSetsLost: score.player2Sets,
-      kind: 'score',
-      status: 'approved',
-      playedOnCourt: true,
-      isForfeit: false,
-      importedAt: nowIso,
-    };
-  };
-
-  const createSyntheticCustomMatchId = (leagueId: string, player1Id: string, player2Id: string) => {
-    const league = leagues.find(item => item.id === leagueId);
-    const player1Name = players.find(player => player.id === player1Id)?.name ?? player1Id;
-    const player2Name = players.find(player => player.id === player2Id)?.name ?? player2Id;
-    const player1Index = league?.playerIds.findIndex(id => id === player1Id);
-    const player2Index = league?.playerIds.findIndex(id => id === player2Id);
-    const slug = [leagueId, (player1Index ?? -1) + 1, (player2Index ?? -1) + 1, player1Name, player2Name]
-      .join('-')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    return `m_sub_${slug}`;
-  };
-
-  const isSyntheticCustomMatch = (match: Match) => match.submissionType === 'custom' || match.id.startsWith('m_sub_');
-
-  const resetSubmittedMatch = async (match: Match) => {
-    await resetMatchSubmissionOnSupabase({ matchId: match.id });
+  const handleUpdateMatchSubmission = async (matchId: string, finalScore: MatchScore) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await updateSubmittedScore(accessToken, matchId, finalScore);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Beküldött eredmény szerkesztése sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
   const handleSubmitResult = async (payload: {
@@ -298,8 +278,6 @@ export default function App() {
     submitterName: string;
     comment?: string;
   }): Promise<SubmitMatchResultOutcome> => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    const normalizedScore = normalizeSubmittedScore(payload.finalScore);
     const existingPlannedMatch = matches.find(match => {
       const sameLeague = match.leagueId === payload.leagueId;
       const sameOrder = match.player1Id === payload.player1Id && match.player2Id === payload.player2Id;
@@ -307,136 +285,40 @@ export default function App() {
       return sameLeague && match.status === 'Tervezett' && (sameOrder || reverseOrder);
     });
 
-    if (existingPlannedMatch) {
-      try {
+    try {
+      if (existingPlannedMatch) {
         await submitMatchResultToSupabase({
           matchId: existingPlannedMatch.id,
-          finalScore: normalizedScore,
+          finalScore: payload.finalScore,
           submitterName: payload.submitterName,
           comment: payload.comment,
           submittedPlayer1Id: payload.player1Id,
           submittedPlayer2Id: payload.player2Id,
         });
-      } catch (error) {
-        const submissionError = classifySubmissionError(error);
-        if (submissionError.code !== 'config' && submissionError.code !== 'network') {
-          throw submissionError;
-        }
-
-        setMatches(prev => prev.map(match => {
-          if (match.id !== existingPlannedMatch.id) {
-            return match;
-          }
-
-          return {
-            ...match,
-            status: 'Beküldve',
-            submittedScore: normalizedScore,
-            submittedPlayer1Id: payload.player1Id,
-            submittedPlayer2Id: payload.player2Id,
-            submitterName: payload.submitterName,
-            submitterContact: undefined,
-            comment: payload.comment,
-            submittedAt: new Date().toISOString(),
-            submissionType: 'planned',
-          };
-        }));
-
-        return {
-          remoteAttempted: true,
-          remoteSynced: false,
-          remoteError: submissionError.message,
-        };
+      } else {
+        await submitCustomMatchResultToSupabase({
+          leagueId: payload.leagueId,
+          player1Id: payload.player1Id,
+          player2Id: payload.player2Id,
+          finalScore: payload.finalScore,
+          submitterName: payload.submitterName,
+          comment: payload.comment,
+        });
       }
-
-      setMatches(prev => prev.map(match => {
-        if (match.id !== existingPlannedMatch.id) {
-          return match;
-        }
-
-        return {
-          ...match,
-          status: 'Beküldve',
-          submittedScore: normalizedScore,
-          submittedPlayer1Id: payload.player1Id,
-          submittedPlayer2Id: payload.player2Id,
-          submitterName: payload.submitterName,
-          submitterContact: undefined,
-          comment: payload.comment,
-          submittedAt: new Date().toISOString(),
-          submissionType: 'planned',
-        };
-      }));
-      refreshPublicLeagueData();
-
-      return {
-        remoteAttempted: true,
-        remoteSynced: true,
-      };
+    } catch (error) {
+      throw classifySubmissionError(error);
     }
 
-    const existingCustomSubmission = matches.find(match => {
-      const sameLeague = match.leagueId === payload.leagueId;
-      const sameOrder = match.player1Id === payload.player1Id && match.player2Id === payload.player2Id;
-      const reverseOrder = match.player1Id === payload.player2Id && match.player2Id === payload.player1Id;
-      return sameLeague && match.status === 'Beküldve' && match.submissionType === 'custom' && (sameOrder || reverseOrder);
-    });
-
-    if (existingCustomSubmission) {
-      const nowIso = new Date().toISOString();
-      setMatches(prev => prev.map(match => {
-        if (match.id !== existingCustomSubmission.id) {
-          return match;
-        }
-
-        return {
-          ...match,
-          submittedScore: normalizedScore,
-          submittedPlayer1Id: payload.player1Id,
-          submittedPlayer2Id: payload.player2Id,
-          submitterName: payload.submitterName,
-          submitterContact: undefined,
-          comment: payload.comment,
-          submittedAt: nowIso,
-        };
-      }));
-      refreshPublicLeagueData();
-
-      return {
-        remoteAttempted: false,
-        remoteSynced: true,
-      };
-    }
-
-    setMatches(prev => [
-      {
-        id: createSyntheticCustomMatchId(payload.leagueId, payload.player1Id, payload.player2Id),
-        leagueId: payload.leagueId,
-        round: 0,
-        player1Id: payload.player1Id,
-        player2Id: payload.player2Id,
-        submittedPlayer1Id: payload.player1Id,
-        submittedPlayer2Id: payload.player2Id,
-        status: 'Beküldve',
-        submittedScore: normalizedScore,
-        submitterName: payload.submitterName,
-        submitterContact: undefined,
-        comment: payload.comment,
-        submittedAt: new Date().toISOString(),
-        submissionType: 'custom',
-      },
-      ...prev,
-    ]);
     refreshPublicLeagueData();
 
     return {
-      remoteAttempted: false,
+      remoteAttempted: true,
       remoteSynced: true,
     };
   };
 
   const handleApproveMatch = async (matchId: string, finalScoreOverride?: MatchScore) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
+    setAdminActionError(null);
     const match = matches.find(m => m.id === matchId);
     if (!match) {
       return;
@@ -448,195 +330,78 @@ export default function App() {
     }
 
     try {
-      await approveMatchResultOnSupabase({
-        matchId,
-        finalScore: approvedScore,
-      });
+      await approveMatchResultOnSupabase({ matchId, finalScore: approvedScore });
+      refreshPublicLeagueData();
+      refreshLatestPublicResults();
     } catch (error) {
-      const approvalError = classifySubmissionError(error);
-      if (approvalError.code !== 'config' && approvalError.code !== 'network') {
-        setAdminActionError(`Admin jóváhagyás sikertelen: ${approvalError.message}`);
-        return;
-      }
-
-      setMatches(prev => prev.map(m => {
-        if (m.id !== matchId) {
-          return m;
-        }
-
-        return {
-          ...m,
-          status: 'Jóváhagyva',
-          submittedScore: approvedScore,
-          submittedPlayer1Id: m.submittedPlayer1Id,
-          submittedPlayer2Id: m.submittedPlayer2Id,
-        };
-      }));
-
-      setResults(prev => {
-        if (prev.some(result => result.matchId === matchId)) {
-          return prev;
-        }
-
-        return [buildApprovedResult({ ...match, submittedScore: approvedScore, status: 'Jóváhagyva' }, approvedScore), ...prev];
-      });
-      setAdminActionError(`Admin jóváhagyás: a Supabase jóváhagyás nem sikerült, a helyi állapot frissült. ${approvalError.message}`);
-      return;
+      setAdminActionError(`Admin jóváhagyás sikertelen: ${classifySubmissionError(error).message}`);
     }
-
-    refreshPublicLeagueData();
-    refreshLatestPublicResults();
-
-    setMatches(prev => prev.map(m => {
-      if (m.id !== matchId) {
-        return m;
-      }
-
-      return {
-        ...m,
-        status: 'Jóváhagyva',
-        submittedScore: approvedScore,
-        submittedPlayer1Id: m.submittedPlayer1Id,
-        submittedPlayer2Id: m.submittedPlayer2Id,
-      };
-    }));
-
-    setResults(prev => {
-      if (prev.some(result => result.matchId === matchId)) {
-        return prev;
-      }
-
-      return [buildApprovedResult({ ...match, submittedScore: approvedScore, status: 'Jóváhagyva' }, approvedScore), ...prev];
-    });
   };
 
   const handleRejectMatch = async (matchId: string): Promise<void> => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setAdminActionError(null);
     const match = matches.find(m => m.id === matchId);
     if (!match) {
       return;
     }
 
-    const applyLocalReject = () => {
+    try {
       if (isSyntheticCustomMatch(match)) {
-        setMatches(prev => prev.filter(m => m.id !== matchId));
-        return;
+        const accessToken = await withAdminAccessToken();
+        await deleteCustomMatch(accessToken, matchId);
+      } else {
+        await resetMatchSubmissionOnSupabase({ matchId });
       }
 
-      setMatches(prev => prev.map(m => {
-        if (m.id === matchId) {
-          return {
-            ...m,
-            status: 'Tervezett',
-            submittedScore: undefined,
-            submittedPlayer1Id: undefined,
-            submittedPlayer2Id: undefined,
-            submitterName: undefined,
-            submitterContact: undefined,
-            comment: undefined,
-            submittedAt: undefined,
-            approvedAt: undefined,
-            approvedBy: undefined,
-            resultId: undefined,
-            submissionType: undefined,
-          };
-        }
-        return m;
-      }));
-    };
-
-    if (isSyntheticCustomMatch(match)) {
-      applyLocalReject();
-      return;
-    }
-
-    try {
-      await resetSubmittedMatch(match);
       refreshPublicLeagueData();
       refreshLatestPublicResults();
-      applyLocalReject();
     } catch (error) {
-      const resetError = classifySubmissionError(error);
-      if (resetError.code === 'config' || resetError.code === 'network') {
-        applyLocalReject();
-        setAdminActionError(`Admin visszavonás: a Supabase reset nem sikerült, a helyi állapot frissült. ${resetError.message}`);
-        return;
-      }
-
-      setAdminActionError(`Admin visszavonás sikertelen: ${resetError.message}`);
+      setAdminActionError(`Admin visszavonás sikertelen: ${classifyAdminDataError(error).message}`);
     }
   };
 
   const handleDeleteMatch = async (matchId: string): Promise<void> => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
     setAdminActionError(null);
     const match = matches.find(m => m.id === matchId);
     if (!match) {
       return;
     }
 
-    const applyLocalDelete = () => {
-      setResults(prev => prev.filter(result => result.matchId !== matchId));
-
+    try {
       if (isSyntheticCustomMatch(match)) {
-        setMatches(prev => prev.filter(m => m.id !== matchId));
-        return;
+        const accessToken = await withAdminAccessToken();
+        await deleteCustomMatch(accessToken, matchId);
+      } else {
+        await resetMatchSubmissionOnSupabase({ matchId });
       }
 
-      setMatches(prev => prev.map(m => {
-        if (m.id !== matchId) {
-          return m;
-        }
-
-        return {
-          ...m,
-          status: 'Tervezett',
-          submittedScore: undefined,
-          submittedPlayer1Id: undefined,
-          submittedPlayer2Id: undefined,
-          submitterName: undefined,
-          submitterContact: undefined,
-          comment: undefined,
-          submittedAt: undefined,
-          approvedAt: undefined,
-          approvedBy: undefined,
-          resultId: undefined,
-          submissionType: undefined,
-        };
-      }));
-    };
-
-    if (isSyntheticCustomMatch(match)) {
-      applyLocalDelete();
-      return;
-    }
-
-    try {
-      await resetSubmittedMatch(match);
       refreshPublicLeagueData();
       refreshLatestPublicResults();
-      applyLocalDelete();
     } catch (error) {
-      const resetError = classifySubmissionError(error);
-      if (resetError.code === 'config' || resetError.code === 'network') {
-        applyLocalDelete();
-        setAdminActionError(`Admin törlés: a Supabase reset nem sikerült, a helyi állapot frissült. ${resetError.message}`);
-        return;
-      }
-
-      setAdminActionError(`Admin törlés sikertelen: ${resetError.message}`);
+      setAdminActionError(`Admin törlés sikertelen: ${classifyAdminDataError(error).message}`);
     }
   };
 
-  const handleAddSponsor = (s: Sponsor) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setSponsors(prev => [...prev, s]);
+  const handleAddSponsor = async (sponsor: Sponsor) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await createSponsor(accessToken, sponsor);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Szponzor hozzáadása sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
-  const handleUpdateSponsor = (updated: Sponsor) => {
-    if (!hasCompletedInitialHydration) userMutatedBeforeHydrationRef.current = true;
-    setSponsors(prev => prev.map(s => s.id === updated.id ? updated : s));
+  const handleUpdateSponsor = async (updated: Sponsor) => {
+    setAdminActionError(null);
+    try {
+      const accessToken = await withAdminAccessToken();
+      await updateSponsor(accessToken, updated);
+      refreshPublicLeagueData();
+    } catch (error) {
+      setAdminActionError(`Szponzor frissítése sikertelen: ${classifyAdminDataError(error).message}`);
+    }
   };
 
   return (
@@ -644,28 +409,28 @@ export default function App() {
       className="min-h-dvh bg-brand-light flex flex-col"
       id="app-wrapper"
     >
-      <Header 
-        currentView={currentView} 
-        setView={handleSetView} 
+      <Header
+        currentView={currentView}
+        setView={handleSetView}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-10 sm:pb-12" id="app-main">
-        {!hasCompletedInitialHydration && (
+        {dataStatus === 'loading' && (
           <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-            Háttérszinkronizálás folyamatban.
+            Adatok betöltése folyamatban.
           </div>
         )}
-        {syncStatus === 'offline' && hasCompletedInitialHydration && (
+        {dataStatus === 'error' && (
           <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Helyi mentés aktív. A Supabase-szinkron később újra elérhető lehet.
+            Nem sikerült frissíteni az adatokat. A legutóbb betöltött állapot látható.
           </div>
         )}
 
         {currentView === 'home' && (
-          <PublicHome 
+          <PublicHome
             players={players}
-            leagues={leagues} 
-            matches={matches} 
+            leagues={leagues}
+            matches={matches}
             results={results}
             setView={handleSetView}
             publicResultsRevision={latestPublicResultsRevision}
@@ -674,10 +439,6 @@ export default function App() {
 
         {currentView === 'leagues' && (
           <PublicLeagues
-            players={players}
-            leagues={leagues}
-            matches={matches}
-            results={results}
             onSubmitResult={handleSubmitResult}
             setView={handleSetView}
             selectedLeagueId={selectedLeagueId}
@@ -698,9 +459,28 @@ export default function App() {
           </Suspense>
         )}
 
-        {currentView === 'admin' && (
+        {currentView === 'admin' && !adminSession && (
+          <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Betöltés...</div>}>
+            <AdminLogin onAuthenticated={setAdminSession} />
+          </Suspense>
+        )}
+
+        {currentView === 'admin' && adminSession && (
           <Suspense fallback={<div className="rounded-2xl border border-gray-150 bg-white px-6 py-10 text-sm text-gray-500">Admin felület betöltése...</div>}>
             <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-150 bg-white px-4 py-3 text-sm text-gray-600">
+                <span>Bejelentkezve: <strong>{adminSession.email}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    signOutAdmin();
+                    setAdminSession(null);
+                  }}
+                  className="rounded-xl border border-gray-200 px-3 py-1.5 font-bold text-gray-600 hover:bg-gray-50"
+                >
+                  Kijelentkezés
+                </button>
+              </div>
               {adminActionError && (
                 <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
                   {adminActionError}
@@ -710,13 +490,13 @@ export default function App() {
                 players={players}
                 leagues={leagues}
                 matches={matches}
-                approvalMatches={matches}
                 sponsors={sponsors}
                 onAddPlayer={handleAddPlayer}
                 onUpdatePlayer={handleUpdatePlayer}
                 onDeletePlayer={handleDeletePlayer}
                 onAddLeague={handleAddLeague}
                 onUpdateLeague={handleUpdateLeague}
+                onDeleteLeague={handleDeleteLeague}
                 onAddMatches={handleAddMatches}
                 onApproveMatch={handleApproveMatch}
                 onUpdateMatchSubmission={handleUpdateMatchSubmission}

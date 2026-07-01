@@ -7,7 +7,6 @@ import {
   tabParamToState,
   tabStateToParam,
 } from '../src/lib/routing';
-import { hydratePersistedAppState, savePersistedAppState } from '../src/lib/app-state';
 import { loadLatestPublicResults } from '../src/lib/public-results';
 import { loadPublicLeagueData } from '../src/lib/public-leagues';
 import {
@@ -37,8 +36,6 @@ function testRoutingHelpers() {
 }
 
 function testImportability() {
-  assert.equal(typeof hydratePersistedAppState, 'function');
-  assert.equal(typeof savePersistedAppState, 'function');
   assert.equal(typeof loadLatestPublicResults, 'function');
   assert.equal(typeof loadPublicLeagueData, 'function');
   assert.equal(typeof submitMatchResultToSupabase, 'function');
